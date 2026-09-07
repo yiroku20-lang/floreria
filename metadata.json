@@ -1,0 +1,6 @@
+{
+  "name": "Rosanfer Florería - Boutique Floral",
+  "description": "Boutique floral elegante con catálogo interactivo, carrito de compras con pedidos por WhatsApp, intranet de inventario y panel centralizado de pedidos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
