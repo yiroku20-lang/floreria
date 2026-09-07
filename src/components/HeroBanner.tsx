@@ -66,13 +66,13 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectCategory }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Auto-advance carousel every 6 seconds
+  // Auto-advance carousel every 6.5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
     }, 6500);
     return () => clearInterval(timer);
-  }, [currentSlide]);
+  }, []);
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));

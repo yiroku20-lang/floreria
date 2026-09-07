@@ -39,13 +39,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       onClick={() => onOpenDetail(product)}
       className="group relative bg-white rounded-2xl overflow-hidden border border-[#5C715E]/10 shadow-rosanfer hover:shadow-rosanfer-lg transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1"
     >
-      {/* Product Image Area */}
-      <div className="relative w-full pt-[105%] bg-[#F4F1EC] overflow-hidden">
+      {/* Product Image Area - Exact 1:1 Square matching Intranet Preview */}
+      <div className="relative w-full aspect-square bg-[#F4F1EC] overflow-hidden">
         <img
           src={displayImage}
           alt={product.name}
           loading="lazy"
           onError={() => setImgError(true)}
+          style={
+            product.framing && !displayImage.startsWith('data:image')
+              ? {
+                  transform: `scale(${product.framing.zoom}) translate(${product.framing.x}%, ${product.framing.y}%) rotate(${product.framing.rotation || 0}deg)`,
+                  transformOrigin: 'center center',
+                }
+              : undefined
+          }
           className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
         />
 

@@ -9,6 +9,13 @@ export type ProductCategory =
   | 'Flores Preservadas'
   | 'Merchandising & Regalos';
 
+export interface ImageFraming {
+  zoom: number;
+  x: number; // percentage (-50 to 50)
+  y: number; // percentage (-50 to 50)
+  rotation?: number; // 0, 90, 180, 270
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -18,6 +25,8 @@ export interface Product {
   originalPrice?: number;
   stock: number;
   imageUrl: string;
+  originalImageUrl?: string;
+  framing?: ImageFraming;
   tags?: ('Bestseller' | 'Nuevo' | 'Temporada' | 'Exclusivo' | 'Oferta')[];
   careTips?: string[];
   stemCount?: string;
@@ -92,4 +101,17 @@ export interface BoutiqueSettings {
   storeCity: string;
   openingHours: string;
   defaultDeliveryFee: number;
+}
+
+export interface AdminUser {
+  username: string;
+  email: string;
+  name: string;
+  role: 'Administrador' | 'Super Admin';
+}
+
+export interface AdminSession {
+  user: AdminUser;
+  token: string;
+  loginTime: string;
 }

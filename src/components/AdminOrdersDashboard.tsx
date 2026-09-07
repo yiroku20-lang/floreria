@@ -15,6 +15,8 @@ import {
   DollarSign,
   Send,
   Eye,
+  Download,
+  Printer,
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { formatCurrency, formatDate } from '../utils/driveUtils';
@@ -78,6 +80,37 @@ export const AdminOrdersDashboard: React.FC<AdminOrdersDashboardProps> = ({
 
   const cleanPhoneForWhatsApp = (raw: string) => {
     return raw.replace(/[^0-9]/g, '');
+  };
+
+  const handleExportCSV = () => {
+    if (!orders || orders.length === 0) {
+      alert('No hay pedidos para exportar.');
+      return;
+    }
+    const headers = ['Orden', 'Fecha', 'Cliente', 'Telefono', 'Modalidad', 'Distrito', 'Total_PEN', 'Estado', 'Pago'];
+    const rows = orders.map((o) => [
+      o.orderNumber,
+      `"${o.createdAt}"`,
+      `"${o.customerName.replace(/"/g, '""')}"`,
+      `"${o.customerPhone}"`,
+      o.deliveryType === 'delivery' ? 'Envio Domicilio' : 'Recojo Tienda',
+      `"${(o.district || '').replace(/"/g, '""')}"`,
+      o.total,
+      `"${o.status}"`,
+      `"${o.paymentMethod.replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `pedidos_rosanfer_cusco_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrintTicket = () => {
+    window.print();
   };
 
   return (
@@ -145,23 +178,33 @@ export const AdminOrdersDashboard: React.FC<AdminOrdersDashboardProps> = ({
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
         </div>
 
-        {/* Status filters */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
-          {['Todos', 'Nuevo', 'En preparación', 'En camino', 'Entregado', 'Cancelado'].map(
-            (status) => (
-              <button
-                key={status}
-                onClick={() => setSelectedStatus(status)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  selectedStatus === status
-                    ? 'bg-[#5C715E] text-white'
-                    : 'bg-[#FBF9F6] text-[#2C362D] hover:bg-gray-200'
-                }`}
-              >
-                {status}
-              </button>
-            )
-          )}
+        {/* Status filters and Export CSV */}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {['Todos', 'Nuevo', 'En preparación', 'En camino', 'Entregado', 'Cancelado'].map(
+              (status) => (
+                <button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    selectedStatus === status
+                      ? 'bg-[#5C715E] text-white'
+                      : 'bg-[#FBF9F6] text-[#2C362D] hover:bg-gray-200'
+                  }`}
+                >
+                  {status}
+                </button>
+              )
+            )}
+          </div>
+          <button
+            onClick={handleExportCSV}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FBF9F6] hover:bg-[#5C715E] hover:text-white text-[#2C362D] border border-gray-200 transition-colors flex items-center gap-1.5"
+            title="Descargar pedidos en formato CSV para Excel"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Exportar CSV</span>
+          </button>
         </div>
       </div>
 
@@ -408,7 +451,7 @@ export const AdminOrdersDashboard: React.FC<AdminOrdersDashboardProps> = ({
             </div>
 
             {/* Quick Actions */}
-            <div className="mt-6 pt-4 border-t border-gray-100 flex gap-2">
+            <div className="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-2">
               <a
                 href={`https://wa.me/${cleanPhoneForWhatsApp(selectedOrder.customerPhone)}`}
                 target="_blank"
@@ -418,6 +461,15 @@ export const AdminOrdersDashboard: React.FC<AdminOrdersDashboardProps> = ({
                 <Phone className="w-3.5 h-3.5" />
                 <span>Contactar por WhatsApp</span>
               </a>
+              <button
+                type="button"
+                onClick={handlePrintTicket}
+                className="px-3.5 py-2.5 rounded-xl bg-[#5C715E]/10 hover:bg-[#5C715E] hover:text-white text-[#5C715E] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                title="Imprimir comanda u hoja de preparación floral"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Imprimir Ticket</span>
+              </button>
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50"

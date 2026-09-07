@@ -57,10 +57,22 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left Column: Image */}
-          <div className="relative min-h-[300px] md:min-h-[460px] bg-[#EFECE6]">
+          <div className="relative min-h-[300px] md:min-h-[460px] bg-[#EFECE6] overflow-hidden">
             <img
               src={transformDriveUrl(product.imageUrl)}
               alt={product.name}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=1000&q=80';
+              }}
+              style={
+                product.framing && !product.imageUrl.startsWith('data:image')
+                  ? {
+                      transform: `scale(${product.framing.zoom}) translate(${product.framing.x}%, ${product.framing.y}%) rotate(${product.framing.rotation || 0}deg)`,
+                      transformOrigin: 'center center',
+                    }
+                  : undefined
+              }
               className="w-full h-full object-cover object-center"
             />
             {/* Tags overlay */}
