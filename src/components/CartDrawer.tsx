@@ -206,7 +206,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       subtotal,
       deliveryFee,
       total,
-      status: 'Nuevo',
+      status: paymentMethod.toLowerCase().includes('contraentrega')
+        ? 'Nuevo'
+        : 'En espera de pago',
       paymentMethod,
       notes,
     };
@@ -494,7 +496,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label className="block text-xs font-bold text-[#5C715E] uppercase tracking-wider mb-2">
                     Tipo de Entrega
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Envío a Domicilio (Activo) */}
                     <button
                       type="button"
                       onClick={() => setDeliveryType('delivery')}
@@ -504,30 +507,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2 font-bold text-xs">
-                        <Truck className="w-4 h-4 text-[#5C715E]" />
-                        <span>Envío a Domicilio</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 font-bold text-xs">
+                          <Truck className="w-4 h-4 text-[#5C715E]" />
+                          <span>Envío a Domicilio</span>
+                        </div>
+                        <span className="text-[10px] font-bold bg-[#5C715E] text-white px-2 py-0.5 rounded-full">
+                          Disponible
+                        </span>
                       </div>
-                      <span className="text-[11px] text-gray-500">
-                        {formatCurrency(defaultDeliveryFee)} en Cusco y alrededores
+                      <span className="text-[11px] text-gray-600">
+                        {formatCurrency(defaultDeliveryFee)} en todo Cusco y alrededores
                       </span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryType('pickup')}
-                      className={`p-3 rounded-2xl border text-left flex flex-col gap-1 transition-all ${
-                        deliveryType === 'pickup'
-                          ? 'border-[#5C715E] bg-[#5C715E]/10 text-[#2C362D] ring-2 ring-[#5C715E]/30'
-                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-                      }`}
+                    {/* Recojo en Tienda (Próximamente) */}
+                    <div
+                      className="p-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50/80 text-left flex flex-col justify-between gap-1 opacity-80 cursor-not-allowed select-none"
+                      title="Por ahora atendemos 100% por delivery. Próximamente abriremos local físico para recojo."
                     >
-                      <div className="flex items-center gap-2 font-bold text-xs">
-                        <Store className="w-4 h-4 text-[#5C715E]" />
-                        <span>Recojo en Tienda</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-semibold text-xs text-gray-400">
+                          <Store className="w-4 h-4 text-gray-400" />
+                          <span>Recojo en Tienda</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
+                          Próximamente
+                        </span>
                       </div>
-                      <span className="text-[11px] text-emerald-700 font-semibold">Gratis</span>
-                    </button>
+                      <span className="text-[10px] text-gray-500 leading-tight">
+                        Actualmente solo atendemos por delivery. ¡Pronto local físico!
+                      </span>
+                    </div>
                   </div>
                 </div>
 

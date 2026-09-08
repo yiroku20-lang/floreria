@@ -181,22 +181,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setTimeout(() => setPasswordFeedback(null), 4000);
   };
 
+  const waitingPaymentCount = orders.filter((o) => o.status === 'En espera de pago').length;
   const pendingOrdersCount = orders.filter((o) => o.status === 'Nuevo').length;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#FBF9F6]">
-      {/* Top Admin Bar */}
-      <header className="sticky top-0 z-30 bg-[#2C362D] text-white px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-4">
+      {/* Top Admin Bar - Fully responsive for mobile devices */}
+      <header className="sticky top-0 z-30 bg-[#2C362D] text-white px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <RosanferLogo size="sm" variant="horizontal" light />
-          <div className="h-6 w-px bg-white/20 hidden sm:block" />
-          <span className="text-xs uppercase font-bold tracking-widest text-[#D49A89] flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="h-5 w-px bg-white/20 hidden sm:block" />
+          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-widest text-[#D49A89] hidden xs:flex items-center gap-1.5 truncate">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="hidden sm:inline">Intranet & Administración</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* User badge */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-xs text-white/90">
             <User className="w-3.5 h-3.5 text-[#D49A89]" />
@@ -207,10 +208,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-white/10 hover:bg-red-500/80 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white/10 hover:bg-red-500/80 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Cerrar sesión de administrador"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Cerrar Sesión</span>
           </button>
 
@@ -218,31 +219,43 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <button
             id="btn-close-admin-portal"
             onClick={onClose}
-            className="px-4 py-2 rounded-full bg-[#5C715E] hover:bg-[#4a5c4c] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#5C715E] hover:bg-[#4a5c4c] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
-            <span>Ir a la Tienda</span>
+            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span><span className="hidden sm:inline">Ir a la </span>Tienda</span>
           </button>
         </div>
       </header>
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 border-b border-[#5C715E]/15 mb-8 scrollbar-none">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Navigation Tabs (Mobile-friendly horizontal scroller) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 sm:pb-4 border-b border-[#5C715E]/15 mb-5 sm:mb-8 scrollbar-none">
           <button
             id="tab-admin-orders"
             onClick={() => setActiveTab('orders')}
-            className={`py-2.5 px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               activeTab === 'orders'
                 ? 'bg-[#5C715E] text-white shadow-md'
                 : 'bg-white text-[#2C362D] hover:bg-[#5C715E]/10 border border-[#5C715E]/15'
             }`}
           >
-            <ShoppingBag className="w-4 h-4" />
+            <ShoppingBag className="w-4 h-4 shrink-0" />
             <span>Pedidos Recibidos ({orders.length})</span>
+            {waitingPaymentCount > 0 && (
+              <span
+                className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] flex items-center gap-0.5 font-bold"
+                title="Pedidos en espera de pago"
+              >
+                <span>⏳</span>
+                <span>{waitingPaymentCount}</span>
+              </span>
+            )}
             {pendingOrdersCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold">
+              <span
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold"
+                title="Nuevos por atender"
+              >
                 {pendingOrdersCount}
               </span>
             )}
@@ -251,40 +264,40 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <button
             id="tab-admin-inventory"
             onClick={() => setActiveTab('inventory')}
-            className={`py-2.5 px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               activeTab === 'inventory'
                 ? 'bg-[#5C715E] text-white shadow-md'
                 : 'bg-white text-[#2C362D] hover:bg-[#5C715E]/10 border border-[#5C715E]/15'
             }`}
           >
-            <Package className="w-4 h-4" />
-            <span>Intranet de Inventario (Entradas / Salidas)</span>
+            <Package className="w-4 h-4 shrink-0" />
+            <span>Inventario de Taller</span>
           </button>
 
           <button
             id="tab-admin-catalog"
             onClick={() => setActiveTab('catalog')}
-            className={`py-2.5 px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               activeTab === 'catalog'
                 ? 'bg-[#5C715E] text-white shadow-md'
                 : 'bg-white text-[#2C362D] hover:bg-[#5C715E]/10 border border-[#5C715E]/15'
             }`}
           >
-            <Layers className="w-4 h-4" />
-            <span>Catálogo & Popup Promocional</span>
+            <Layers className="w-4 h-4 shrink-0" />
+            <span>Catálogo & Promos</span>
           </button>
 
           <button
             id="tab-admin-settings"
             onClick={() => setActiveTab('settings')}
-            className={`py-2.5 px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               activeTab === 'settings'
                 ? 'bg-[#5C715E] text-white shadow-md'
                 : 'bg-white text-[#2C362D] hover:bg-[#5C715E]/10 border border-[#5C715E]/15'
             }`}
           >
-            <Settings className="w-4 h-4" />
-            <span>Configuración & Seguridad</span>
+            <Settings className="w-4 h-4 shrink-0" />
+            <span>Configuración</span>
           </button>
         </div>
 
@@ -350,15 +363,24 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#2C362D] mb-1">
-                    Dirección de la Boutique / Taller en Cusco
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#2C362D]">
+                      Ubicación de Taller / Información de Sede
+                    </label>
+                    <span className="text-[10px] text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      100% Delivery • Próximamente tienda física
+                    </span>
+                  </div>
                   <input
                     type="text"
                     value={storeAddress}
                     onChange={(e) => setStoreAddress(e.target.value)}
+                    placeholder="Ej: Taller Floral de Autor (Solo Delivery en Cusco • Próximamente local físico)"
                     className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                   />
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Se muestra en el pie de página informando que el despacho es exclusivamente a domicilio y que pronto habrá local presencial.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

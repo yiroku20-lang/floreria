@@ -407,7 +407,7 @@ export const INITIAL_ORDERS: Order[] = [
     subtotal: 140.0,
     deliveryFee: 12.0,
     total: 152.0,
-    status: 'Nuevo',
+    status: 'En espera de pago',
     paymentMethod: 'WhatsApp / Transferencia BCP',
   },
   {
@@ -489,7 +489,7 @@ export const INITIAL_PROMO: PromoConfig = {
 export const INITIAL_SETTINGS: BoutiqueSettings = {
   whatsappNumber: '51989415220',
   storeName: 'Rosanfer Florería',
-  storeAddress: 'Av. La Cultura 1420 (frente a UNSAAC), Magisterio',
+  storeAddress: 'Taller Floral de Autor (Atención 100% Delivery • Próximamente local físico para recojo)',
   storeCity: 'Cusco, Perú',
   openingHours: 'Lunes a Sábado: 8:00 AM - 8:30 PM | Domingo: 8:30 AM - 3:00 PM',
   defaultDeliveryFee: 12.0,

@@ -46,7 +46,13 @@ export interface DedicationCard {
 
 export type DeliveryType = 'delivery' | 'pickup';
 
-export type OrderStatus = 'Nuevo' | 'En preparación' | 'En camino' | 'Entregado' | 'Cancelado';
+export type OrderStatus =
+  | 'En espera de pago'
+  | 'Nuevo'
+  | 'En preparación'
+  | 'En camino'
+  | 'Entregado'
+  | 'Cancelado';
 
 export interface Order {
   id: string;

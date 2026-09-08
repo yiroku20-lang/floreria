@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Menu, X, ShieldCheck, Phone, Sparkles } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, ShieldCheck, Phone, Sparkles, Lock } from 'lucide-react';
 import { RosanferLogo } from './RosanferLogo';
 
 interface NavbarProps {
@@ -142,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               href="#boutique-story"
               className="text-sm tracking-wide text-[#2C362D]/75 hover:text-[#5C715E] transition-colors py-1"
             >
-              El Taller
+              Cómo Entregamos
             </a>
           </nav>
 
@@ -319,27 +319,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <a
                   href="#boutique-story"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-sm text-[#2C362D] hover:bg-[#5C715E]/10 rounded-lg"
+                  className="px-3 py-2 text-sm text-[#2C362D] hover:bg-[#5C715E]/10 rounded-lg flex items-center justify-between"
                 >
-                  El Taller & Historia
-                </a>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenAdmin();
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium bg-[#5C715E]/10 text-[#5C715E] rounded-lg"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4" />
-                    Intranet de Personal
+                  <span>Cómo Entregamos (Taller & Envíos)</span>
+                  <span className="text-[10px] bg-[#5C715E]/10 text-[#5C715E] font-bold px-2 py-0.5 rounded-full">
+                    100% Delivery
                   </span>
-                  <span className="text-[11px] bg-[#5C715E] text-white px-2 py-0.5 rounded">Acceso</span>
-                </button>
+                </a>
               </div>
             </div>
 
-            {/* Bottom Contact */}
+            {/* Bottom Contact & Discreet Internal Access */}
             <div className="mt-auto pt-4 border-t border-[#5C715E]/15">
               <a
                 href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
@@ -352,9 +342,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Phone className="w-3.5 h-3.5" />
                 Contactar por WhatsApp
               </a>
-              <p className="text-center text-[11px] text-[#2C362D]/60 mt-2 font-serif-boutique italic">
-                Rosanfer Florería • Cusco
-              </p>
+              <div className="mt-3 flex items-center justify-between text-[11px] text-[#2C362D]/40 px-1">
+                <span className="font-serif-boutique italic">Rosanfer • Cusco</span>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenAdmin();
+                  }}
+                  className="text-[#2C362D]/35 hover:text-[#5C715E] transition-colors flex items-center gap-1 text-[10px] cursor-pointer"
+                  title="Gestión interna"
+                >
+                  <Lock className="w-2.5 h-2.5 opacity-60" />
+                  <span>Acceso interno</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

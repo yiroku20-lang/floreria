@@ -61,15 +61,21 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
             </ul>
           </div>
 
-          {/* Col 3: Atelier & Contact */}
+          {/* Col 3: Atelier & Delivery Mode */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#D49A89] mb-4">
-              Boutique & Taller
+              Taller Floral & Envíos
             </h4>
             <ul className="space-y-3 text-xs text-[#FBF9F6]/80 font-light">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#D49A89] shrink-0 mt-0.5" />
-                <span>{settings.storeAddress}, {settings.storeCity}</span>
+                <div>
+                  <span className="font-semibold text-white block">Taller Floral de Autor en Cusco</span>
+                  <span className="text-[#FBF9F6]/75 block">Atención exclusiva por Delivery en toda la ciudad</span>
+                  <span className="inline-block text-[10px] text-amber-300 font-medium bg-amber-900/40 px-2 py-0.5 rounded-md mt-1 border border-amber-500/30">
+                    ✨ Próximamente: Apertura de local físico para recojo
+                  </span>
+                </div>
               </li>
               <li className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[#D49A89] shrink-0 mt-0.5" />
@@ -87,13 +93,13 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
             </ul>
           </div>
 
-          {/* Col 4: WhatsApp Orders & Staff */}
+          {/* Col 4: WhatsApp Orders & Atención */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#D49A89] mb-4">
-              Pedidos & Intranet
+              Atención & Pedidos
             </h4>
             <p className="text-xs text-[#FBF9F6]/70 leading-relaxed mb-4 font-light">
-              Gestionamos tus pedidos con dedicatoria personalizada y entrega segura el mismo día.
+              Gestionamos tus pedidos con dedicatoria personalizada y entrega segura el mismo día en Cusco.
             </p>
             <a
               href={`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(
@@ -106,25 +112,24 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
               <Phone className="w-3.5 h-3.5" />
               <span>Chatear por WhatsApp</span>
             </a>
-
-            <div>
-              <button
-                onClick={onOpenAdmin}
-                className="text-[11px] text-[#FBF9F6]/50 hover:text-[#D49A89] flex items-center gap-1.5 transition-colors pt-2"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Acceso a Intranet & Control de Stock</span>
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Bottom copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#FBF9F6]/50 gap-4">
           <p>© {new Date().getFullYear()} Rosanfer Florería. Todos los derechos reservados.</p>
-          <p className="flex items-center gap-1">
-            Diseñado con <Heart className="w-3.5 h-3.5 text-[#D49A89] fill-[#D49A89]" /> para momentos únicos.
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="flex items-center gap-1">
+              Diseñado con <Heart className="w-3.5 h-3.5 text-[#D49A89] fill-[#D49A89]" /> para momentos únicos.
+            </p>
+            <button
+              onClick={onOpenAdmin}
+              className="text-[10px] text-[#FBF9F6]/30 hover:text-[#D49A89] transition-colors cursor-pointer"
+              title="Portal de colaboradores"
+            >
+              • Acceso interno
+            </button>
+          </div>
         </div>
       </div>
     </footer>
