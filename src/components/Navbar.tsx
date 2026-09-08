@@ -42,19 +42,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const cuscOccasions = [
-    { label: 'Citas & Romance', value: 'Citas & Romance' },
-    { label: 'Graduaciones', value: 'Graduaciones' },
-    { label: 'Cumpleaños', value: 'Cumpleaños' },
-    { label: 'Condolencias & Homenaje', value: 'Condolencias & Homenaje' },
-  ];
-
-  const flowerCollections = [
-    { label: 'Tulipanes Holandeses', value: 'Tulipanes' },
-    { label: 'Rosas de Lujo', value: 'Rosas de Lujo' },
-    { label: 'Ramos de Autor', value: 'Ramos de Autor' },
-    { label: 'Flores Preservadas', value: 'Flores Preservadas' },
-    { label: 'Merchandising & Regalos', value: 'Merchandising & Regalos' },
+  const officialCollections = [
+    { label: 'Festivos', value: 'Festivos', hint: 'Cumpleaños & Quinceañeros' },
+    { label: 'Latidos en Flor', value: 'Latidos en Flor', hint: 'Romance & Amor' },
+    { label: 'Graduación', value: 'Graduación', hint: 'Colaciones & Títulos' },
+    { label: 'Set Nupcial "Sí Acepto"', value: 'Set Nupcial "Sí Acepto"', hint: 'Bodas en Cusco' },
+    { label: 'Amor Eterno', value: 'Amor Eterno', hint: 'Flores Preservadas' },
+    { label: 'Primavera Para Ti', value: 'Primavera Para Ti', hint: 'Tulipanes & Frescas' },
   ];
 
   return (
@@ -63,7 +57,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="bg-[#5C715E] text-[#FBF9F6] text-[11px] py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2">
         <Sparkles className="w-3 h-3 text-[#D49A89]" />
         <span>Boutique Floral en Cusco • Envíos a Domicilio & Recojo en Taller</span>
-        <span className="hidden sm:inline text-[#D49A89]/90">• WhatsApp 984 234 567</span>
+        <span className="hidden sm:inline text-[#D49A89]/90">
+          • WhatsApp {whatsappNumber.length === 11 && whatsappNumber.startsWith('51')
+            ? `${whatsappNumber.slice(2, 5)} ${whatsappNumber.slice(5, 8)} ${whatsappNumber.slice(8)}`
+            : (whatsappNumber || '989 415 220')}
+        </span>
       </div>
 
       {/* Main Top Navigation Bar */}
@@ -127,15 +125,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
-              id="nav-link-ocasiones"
+              id="nav-link-colecciones"
               onClick={() => {
                 scrollToSection('catalogo-section');
               }}
               className="text-sm tracking-wide text-[#2C362D]/75 hover:text-[#5C715E] transition-colors py-1 flex items-center gap-1.5"
             >
-              <span>Ocasiones</span>
+              <span>Colecciones</span>
               <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#D49A89]/20 text-[#2C362D] font-semibold">
-                Cusco
+                6 Tipos
               </span>
             </button>
 
@@ -281,48 +279,38 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Ocasiones Populares en Cusco */}
+            {/* Colecciones Principales (6 Tipos) */}
             <div className="mt-5 flex flex-col gap-1">
-              <p className="text-[11px] uppercase tracking-widest text-[#5C715E] font-bold px-2 mb-1">
-                Ocasiones en Cusco
-              </p>
-              {cuscOccasions.map((occ) => (
+              <div className="flex items-center justify-between px-2 mb-1">
+                <p className="text-[11px] uppercase tracking-widest text-[#5C715E] font-bold">
+                  Nuestras Colecciones
+                </p>
+                <span className="text-[10px] px-2 py-0.2 rounded-full bg-[#D49A89]/20 text-[#2C362D] font-bold">
+                  6 Tipos
+                </span>
+              </div>
+              {officialCollections.map((col) => (
                 <button
-                  key={occ.value}
+                  key={col.value}
                   onClick={() => {
-                    onSelectCategory(occ.value);
+                    onSelectCategory(col.value);
                     setMobileMenuOpen(false);
                     scrollToSection('catalogo-section');
                   }}
-                  className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeCategory === occ.value
+                  className={`text-left px-3 py-2 rounded-xl text-xs transition-colors flex flex-col gap-0.5 ${
+                    activeCategory === col.value
                       ? 'bg-[#5C715E] text-white'
                       : 'text-[#2C362D] hover:bg-[#5C715E]/10'
                   }`}
                 >
-                  {occ.label}
-                </button>
-              ))}
-
-              {/* Colecciones de Flores */}
-              <p className="text-[11px] uppercase tracking-widest text-[#5C715E] font-bold px-2 mt-4 mb-1">
-                Colecciones Insignia
-              </p>
-              {flowerCollections.map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => {
-                    onSelectCategory(cat.value);
-                    setMobileMenuOpen(false);
-                    scrollToSection('catalogo-section');
-                  }}
-                  className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeCategory === cat.value
-                      ? 'bg-[#5C715E] text-white'
-                      : 'text-[#2C362D] hover:bg-[#5C715E]/10'
-                  }`}
-                >
-                  {cat.label}
+                  <span className="font-bold">{col.label}</span>
+                  <span
+                    className={`text-[10px] ${
+                      activeCategory === col.value ? 'text-white/80' : 'text-[#5C715E]'
+                    }`}
+                  >
+                    {col.hint}
+                  </span>
                 </button>
               ))}
 

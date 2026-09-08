@@ -1,13 +1,10 @@
 export type ProductCategory =
-  | 'Citas & Romance'
-  | 'Graduaciones'
-  | 'Cumpleaños'
-  | 'Condolencias & Homenaje'
-  | 'Tulipanes'
-  | 'Rosas de Lujo'
-  | 'Ramos de Autor'
-  | 'Flores Preservadas'
-  | 'Merchandising & Regalos';
+  | 'Festivos'
+  | 'Latidos en Flor'
+  | 'Graduación'
+  | 'Set Nupcial "Sí Acepto"'
+  | 'Amor Eterno'
+  | 'Primavera Para Ti';
 
 export interface ImageFraming {
   zoom: number;
@@ -20,6 +17,7 @@ export interface Product {
   id: string;
   name: string;
   category: ProductCategory;
+  subEdition?: string; // Versión especial (ej: Cumpleaños, Quinceañero, Ramo de Novia, etc.)
   description: string;
   price: number;
   originalPrice?: number;
@@ -31,7 +29,7 @@ export interface Product {
   careTips?: string[];
   stemCount?: string;
   featured?: boolean;
-  occasion?: 'Citas & Romance' | 'Graduaciones' | 'Cumpleaños' | 'Condolencias & Homenaje' | 'Aniversarios' | 'Agradecimiento' | 'General';
+  occasion?: string;
 }
 
 export interface CartItem {
@@ -101,6 +99,10 @@ export interface BoutiqueSettings {
   storeCity: string;
   openingHours: string;
   defaultDeliveryFee: number;
+  yapeNumber: string;
+  yapeHolder: string;
+  bcpAccount?: string;
+  interbankAccount?: string;
 }
 
 export interface AdminUser {

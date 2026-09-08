@@ -14,8 +14,17 @@ import {
   CheckCircle,
   Truck,
   Store,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  QrCode,
+  Building2,
+  Smartphone,
+  AlertTriangle,
+  Wallet,
 } from 'lucide-react';
-import { CartItem, DeliveryType, Order, DedicationCard } from '../types';
+import { CartItem, DeliveryType, Order, DedicationCard, PromoConfig, BoutiqueSettings } from '../types';
 import { formatCurrency, transformDriveUrl } from '../utils/driveUtils';
 
 interface CartDrawerProps {
@@ -28,6 +37,10 @@ interface CartDrawerProps {
   onOrderCreated: (order: Order) => void;
   whatsappNumber: string;
   defaultDeliveryFee: number;
+  storeAddress?: string;
+  storeCity?: string;
+  promoConfig?: PromoConfig;
+  settings?: BoutiqueSettings;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -40,18 +53,30 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onOrderCreated,
   whatsappNumber,
   defaultDeliveryFee,
+  storeAddress,
+  storeCity,
+  promoConfig,
+  settings,
 }) => {
   // Step 1: Cart Items / Step 2: Checkout Form / Step 3: Confirmation
   const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart');
+
+  // Dates
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
 
   // Customer Form State
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [address, setAddress] = useState('');
-  const [district, setDistrict] = useState('San Isidro');
+  const [district, setDistrict] = useState('Wanchaq');
   const [reference, setReference] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState('Hoy');
+  const [dateOption, setDateOption] = useState<'today' | 'tomorrow' | 'custom'>('today');
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [deliveryDate, setDeliveryDate] = useState(`Hoy (${todayStr})`);
   const [deliveryTimeSlot, setDeliveryTimeSlot] = useState('Tarde (14:00 - 19:00)');
   const [paymentMethod, setPaymentMethod] = useState('Yape / Plin / Transferencia');
   const [notes, setNotes] = useState('');
@@ -68,8 +93,32 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
 
-  // Newly placed order
+  // Newly placed order & payment states
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [successWhatsappUrl, setSuccessWhatsappUrl] = useState('');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [showBankAccounts, setShowBankAccounts] = useState(false);
+
+  // Bank & Wallet numbers from settings
+  const yapeNum = settings?.yapeNumber || '989 415 220';
+  const yapeHolder = settings?.yapeHolder || 'Rosanfer Florería / Andrea V.';
+  const bcpAcc = settings?.bcpAccount || '215-98765432-0-12';
+  const interbankAcc = settings?.interbankAccount || '003-892-0134567890-44';
+
+  const handleCopyText = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2500);
+  };
+
+  const handleOpenWhatsAppSuccess = () => {
+    if (successWhatsappUrl) {
+      window.open(successWhatsappUrl, '_blank');
+    } else {
+      const cleanNumber = whatsappNumber.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanNumber}`, '_blank');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -84,7 +133,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     setCouponError('');
     setCouponSuccess('');
     const code = couponCode.trim().toUpperCase();
-    if (code === 'TULIPAN15' || code === 'ROSANFER15') {
+    if (!code) {
+      setCouponError('Ingresa un código de cupón.');
+      return;
+    }
+
+    const dynamicCode =
+      promoConfig?.isEnabled && promoConfig?.couponCode
+        ? promoConfig.couponCode.trim().toUpperCase()
+        : null;
+
+    if (dynamicCode && code === dynamicCode) {
+      let discount = 15;
+      const numMatch = dynamicCode.match(/\d+/);
+      if (numMatch) {
+        const parsed = parseInt(numMatch[0], 10);
+        if (parsed > 0 && parsed <= 90) discount = parsed;
+      }
+      setAppliedDiscount(discount);
+      setCouponSuccess(`¡Cupón promocional ${dynamicCode} aplicado! ${discount}% de descuento.`);
+    } else if (code === 'TULIPAN15' || code === 'ROSANFER15') {
       setAppliedDiscount(15);
       setCouponSuccess('¡Cupón aplicado! 15% de descuento.');
     } else if (code === 'FLORES10') {
@@ -162,7 +230,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         messageText += `📌 *Referencia:* ${reference}\n`;
       }
     } else {
-      messageText += `📍 *Punto de recojo:* Boutique Rosanfer (Av. Conquistadores 780, San Isidro)\n`;
+      messageText += `📍 *Punto de recojo:* ${storeAddress || 'Av. La Cultura 1420 (frente a UNSAAC), Magisterio'}, ${storeCity || 'Cusco'}\n`;
     }
 
     messageText += `🗓️ *Fecha deseada:* ${deliveryDate}\n`;
@@ -188,19 +256,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       messageText += `*Descuento (${appliedDiscount}%):* -${formatCurrency(discountAmount)}\n`;
     }
     messageText += `*Costo de Envío:* ${formatCurrency(deliveryFee)}\n`;
-    messageText += `*💰 TOTAL A PAGAR:* ${formatCurrency(total)}\n`;
-    messageText += `*Forma de pago:* ${paymentMethod}\n`;
-
     if (notes.trim()) {
       messageText += `📝 *Observaciones:* ${notes}\n`;
     }
-
     messageText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    messageText += `_Generado automáticamente desde rosanferfloreria.com_\n`;
-    messageText += `¡Quedo a la espera de sus datos de pago para confirmar mi pedido! Muchas gracias.`;
+    messageText += `💰 *TOTAL A PAGAR:* S/. ${total.toFixed(2)}\n`;
+    messageText += `💳 *MÉTODO DE PAGO:* ${paymentMethod}\n`;
+    messageText += `📎 *NOTA:* He realizado/estoy enviando el comprobante de pago por este chat para confirmar mi pedido.\n`;
+    messageText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    messageText += `_Generado desde la tienda web rosanferfloreria.com_`;
 
     // Encode for WhatsApp URL
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(messageText)}`;
+    const cleanNumber = whatsappNumber.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(messageText)}`;
+    setSuccessWhatsappUrl(whatsappUrl);
 
     // Clear cart and switch to success view
     onClearCart();
@@ -269,11 +338,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       key={item.product.id}
                       className="flex gap-4 p-3 bg-white rounded-2xl border border-[#5C715E]/10 shadow-xs items-center"
                     >
-                      <img
-                        src={transformDriveUrl(item.product.imageUrl)}
-                        alt={item.product.name}
-                        className="w-20 h-20 rounded-xl object-cover border border-gray-100"
-                      />
+                      <div className="w-20 h-20 rounded-xl overflow-hidden relative border border-gray-100 bg-[#F4F1EC] shrink-0 aspect-square">
+                        <img
+                          src={transformDriveUrl(item.product.imageUrl)}
+                          alt={item.product.name}
+                          style={
+                            item.product.framing
+                              ? {
+                                  objectPosition: `${50 + (item.product.framing.x || 0)}% ${50 + (item.product.framing.y || 0)}%`,
+                                  transform: `scale(${Math.max(1, item.product.framing.zoom || 1)}) rotate(${item.product.framing.rotation || 0}deg)`,
+                                  transformOrigin: 'center center',
+                                }
+                              : undefined
+                          }
+                          className="w-full h-full object-cover object-center"
+                        />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] uppercase font-bold text-[#5C715E] tracking-wider">
                           {item.product.category}
@@ -503,18 +583,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         onChange={(e) => setDistrict(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E]"
                       >
-                        <option value="San Isidro">San Isidro</option>
-                        <option value="Miraflores">Miraflores</option>
-                        <option value="Barranco">Barranco</option>
-                        <option value="Surco">Santiago de Surco</option>
-                        <option value="La Molina">La Molina</option>
-                        <option value="San Borja">San Borja</option>
-                        <option value="Jesús María">Jesús María</option>
-                        <option value="Magdalena">Magdalena del Mar</option>
-                        <option value="Lince">Lince</option>
-                        <option value="Pueblo Libre">Pueblo Libre</option>
-                        <option value="San Miguel">San Miguel</option>
-                        <option value="Otro Distrito">Otro Distrito</option>
+                        <option value="Wanchaq">Wanchaq</option>
+                        <option value="Cusco (Centro Histórico)">Cusco (Centro Histórico)</option>
+                        <option value="San Sebastián">San Sebastián</option>
+                        <option value="Santiago">Santiago</option>
+                        <option value="San Jerónimo">San Jerónimo</option>
+                        <option value="Poroy">Poroy</option>
+                        <option value="Saylla">Saylla</option>
+                        <option value="Otro Distrito / Alrededores">Otro Distrito / Alrededores</option>
                       </select>
                     </div>
 
@@ -525,7 +601,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <input
                         type="text"
                         required
-                        placeholder="Ej: Av. Las Flores 452, Dpto 301"
+                        placeholder="Ej: Av. De la Cultura 1420, Dpto 301"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E]"
@@ -551,26 +627,90 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div className="bg-white p-4 rounded-2xl border border-[#5C715E]/15 space-y-3">
                   <h4 className="text-xs font-bold text-[#5C715E] uppercase tracking-wider flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#D49A89]" />
-                    <span>Fecha y Turno</span>
+                    <span>Fecha y Turno de Entrega</span>
                   </h4>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-[#2C362D] mb-1">Día</label>
-                      <select
-                        value={deliveryDate}
-                        onChange={(e) => setDeliveryDate(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E]"
-                      >
-                        <option value="Hoy Mismo">Hoy Mismo (Express)</option>
-                        <option value="Mañana">Mañana</option>
-                        <option value="En 2 días">En 2 días</option>
-                        <option value="Fecha especial / Por coordinar">Por coordinar</option>
-                      </select>
+                      <label className="block text-xs font-medium text-[#2C362D] mb-1.5">
+                        Día de Entrega *
+                      </label>
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDateOption('today');
+                            setSelectedDate(todayStr);
+                            setDeliveryDate(`Hoy (${todayStr})`);
+                          }}
+                          className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                            dateOption === 'today'
+                              ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs'
+                              : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100'
+                          }`}
+                        >
+                          Hoy
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDateOption('tomorrow');
+                            setSelectedDate(tomorrowStr);
+                            setDeliveryDate(`Mañana (${tomorrowStr})`);
+                          }}
+                          className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                            dateOption === 'tomorrow'
+                              ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs'
+                              : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100'
+                          }`}
+                        >
+                          Mañana
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDateOption('custom');
+                            setDeliveryDate(`Fecha programada: ${selectedDate}`);
+                          }}
+                          className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                            dateOption === 'custom'
+                              ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs'
+                              : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100'
+                          }`}
+                        >
+                          Otra Fecha
+                        </button>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="date"
+                          min={todayStr}
+                          value={selectedDate}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (!val) return;
+                            setSelectedDate(val);
+                            if (val === todayStr) {
+                              setDateOption('today');
+                              setDeliveryDate(`Hoy (${val})`);
+                            } else if (val === tomorrowStr) {
+                              setDateOption('tomorrow');
+                              setDeliveryDate(`Mañana (${val})`);
+                            } else {
+                              setDateOption('custom');
+                              setDeliveryDate(`Fecha programada: ${val}`);
+                            }
+                          }}
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E] text-[#2C362D]"
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-[#2C362D] mb-1">Turno</label>
+                      <label className="block text-xs font-medium text-[#2C362D] mb-1">
+                        Turno de Horario *
+                      </label>
                       <select
                         value={deliveryTimeSlot}
                         onChange={(e) => setDeliveryTimeSlot(e.target.value)}
@@ -686,57 +826,214 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </form>
           )}
 
-          {/* STEP 3: SUCCESS CONFIRMATION */}
+          {/* STEP 3: SUCCESS CONFIRMATION & PAYMENT DETAILS */}
           {step === 'success' && placedOrder && (
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 animate-bounce">
-                <CheckCircle className="w-10 h-10" />
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mb-3 shadow-xs">
+                <CheckCircle className="w-8 h-8" />
               </div>
 
-              <span className="text-xs uppercase font-bold text-[#5C715E] tracking-widest">
-                ¡Muchas Gracias por tu Pedido!
+              <span className="text-[11px] uppercase font-bold text-[#5C715E] tracking-widest">
+                ¡Pedido Registrado con Éxito!
               </span>
-              <h3 className="text-2xl font-serif-boutique font-bold text-[#2C362D] mt-1">
+              <h3 className="text-xl font-serif-boutique font-bold text-[#2C362D] mt-0.5">
                 Orden #{placedOrder.orderNumber}
               </h3>
-
-              <p className="text-xs text-[#2C362D]/70 mt-2 max-w-xs leading-relaxed">
-                Hemos registrado tu pedido en nuestro sistema central. Si no se abrió WhatsApp
-                automáticamente, puedes presionar el botón abajo para enviar el mensaje preconfigurado.
+              <p className="text-xs text-gray-500 mt-1">
+                Cliente: <strong className="text-[#2C362D]">{placedOrder.customerName}</strong>
               </p>
 
-              <div className="w-full mt-6 p-4 rounded-2xl bg-white border border-[#5C715E]/15 text-left text-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Cliente:</span>
-                  <span className="font-semibold text-[#2C362D]">{placedOrder.customerName}</span>
+              {/* Highlighted Boutique Payment Box */}
+              <div className="w-full mt-4 p-4 sm:p-5 rounded-3xl bg-white border-2 border-[#5C715E]/20 shadow-sm text-left relative overflow-hidden">
+                {/* Subtle Rosanfer decorative accent */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#D49A89]/20 to-transparent rounded-bl-full pointer-events-none" />
+
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#5C715E]/10 text-[#5C715E] flex items-center justify-center">
+                      <Wallet className="w-4 h-4" />
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5C715E]">
+                      Datos para tu Pago Directo
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#D49A89] bg-[#D49A89]/10 px-2.5 py-0.5 rounded-full border border-[#D49A89]/20">
+                    Yape / Plin / Bancos
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Total a pagar:</span>
-                  <span className="font-bold text-[#5C715E]">{formatCurrency(placedOrder.total)}</span>
+
+                {/* Total a pagar destacado */}
+                <div className="bg-[#FBF9F6] p-3.5 rounded-2xl border border-[#5C715E]/15 flex items-center justify-between mb-3.5">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">
+                      Total a pagar
+                    </span>
+                    <span className="text-2xl font-bold font-serif-boutique text-[#2C362D]">
+                      S/. {placedOrder.total.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] font-semibold text-[#5C715E] bg-[#5C715E]/10 px-2.5 py-1 rounded-full block">
+                      {placedOrder.deliveryType === 'delivery' ? 'Envío a domicilio' : 'Recojo en tienda'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Entrega:</span>
-                  <span>{placedOrder.deliveryType === 'delivery' ? 'A domicilio' : 'Recojo en tienda'}</span>
+
+                {/* Yape / Plin Card */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 mb-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Smartphone className="w-4 h-4 text-emerald-700" />
+                      <span className="text-xs font-bold text-emerald-900">Yape / Plin:</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyText(yapeNum, 'yape')}
+                      className="text-[11px] font-semibold text-emerald-800 hover:text-emerald-950 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1.5 shadow-2xs hover:bg-emerald-50 active:scale-95 transition-all cursor-pointer"
+                      title="Copiar número de Yape"
+                    >
+                      {copiedKey === 'yape' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>¡Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Copiar número</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="pt-0.5">
+                    <span className="text-base font-bold text-[#2C362D] tracking-wider font-mono">
+                      {yapeNum}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-900/80 font-medium">
+                    Titular: <span className="font-semibold text-emerald-950">{yapeHolder}</span>
+                  </p>
                 </div>
+
+                {/* Cuentas bancarias */}
+                {(bcpAcc || interbankAcc) && (
+                  <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                    <button
+                      type="button"
+                      onClick={() => setShowBankAccounts(!showBankAccounts)}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold text-[#2C362D] flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5 text-gray-700">
+                        <Building2 className="w-3.5 h-3.5 text-[#5C715E]" />
+                        <span>Cuentas Bancarias (BCP / Interbank)</span>
+                      </span>
+                      <div className="flex items-center gap-1 text-gray-400">
+                        <span className="text-[11px] font-normal">
+                          {showBankAccounts ? 'Ocultar' : 'Ver cuentas'}
+                        </span>
+                        {showBankAccounts ? (
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        )}
+                      </div>
+                    </button>
+
+                    {showBankAccounts && (
+                      <div className="p-3 bg-[#FBF9F6] border-t border-gray-100 space-y-2.5">
+                        {bcpAcc && (
+                          <div className="p-2.5 bg-white rounded-xl border border-gray-200 text-xs">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-[#2C362D] flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                                BCP Soles:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyText(bcpAcc, 'bcp')}
+                                className="text-[10px] font-semibold text-gray-700 hover:text-black bg-gray-50 px-2 py-0.5 rounded border border-gray-200 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                              >
+                                {copiedKey === 'bcp' ? (
+                                  <>
+                                    <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                    <span>Copiado</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-2.5 h-2.5 text-gray-500" />
+                                    <span>Copiar número de cuenta</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <p className="font-mono text-xs text-gray-800 font-semibold select-all">{bcpAcc}</p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">Titular: {yapeHolder}</p>
+                          </div>
+                        )}
+
+                        {interbankAcc && (
+                          <div className="p-2.5 bg-white rounded-xl border border-gray-200 text-xs">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-[#2C362D] flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                                Interbank Soles:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyText(interbankAcc, 'interbank')}
+                                className="text-[10px] font-semibold text-gray-700 hover:text-black bg-gray-50 px-2 py-0.5 rounded border border-gray-200 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                              >
+                                {copiedKey === 'interbank' ? (
+                                  <>
+                                    <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                    <span>Copiado</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-2.5 h-2.5 text-gray-500" />
+                                    <span>Copiar número de cuenta</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <p className="font-mono text-xs text-gray-800 font-semibold select-all">{interbankAcc}</p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">Titular: {yapeHolder}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="w-full mt-6 space-y-2.5">
-                <a
-                  href={`https://wa.me/${whatsappNumber}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 rounded-full bg-[#5C715E] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md hover:bg-[#4a5c4c]"
+              {/* Clear Instruction Banner */}
+              <div className="w-full mt-3.5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-900 flex items-start gap-2.5 shadow-2xs">
+                <span className="text-base shrink-0 select-none">⚠️</span>
+                <p className="leading-relaxed">
+                  <strong className="font-bold text-amber-950">Importante:</strong> Los arreglos florales se preparan únicamente con el pago verificado. Por favor realiza el abono y adjunta tu captura de pantalla en el chat de WhatsApp que se abrirá a continuación.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="w-full mt-4 space-y-2.5">
+                <button
+                  id="btn-whatsapp-send-comprobante"
+                  type="button"
+                  onClick={handleOpenWhatsAppSuccess}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-[#5C715E] hover:bg-[#4a5c4c] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Abrir WhatsApp Nuevamente</span>
-                </a>
+                  <span className="text-base">📱</span>
+                  <span>Enviar Pedido y Adjuntar Comprobante por WhatsApp</span>
+                </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setStep('cart');
                     onClose();
                   }}
-                  className="w-full py-2.5 rounded-full border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full py-2.5 rounded-full border border-gray-300 text-xs font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   Regresar al Catálogo
                 </button>

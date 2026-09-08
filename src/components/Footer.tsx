@@ -36,8 +36,14 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
               Colecciones
             </h4>
             <ul className="space-y-2.5 text-xs text-[#FBF9F6]/80 font-light">
-              {['Tulipanes', 'Rosas de Lujo', 'Ramos de Autor', 'Flores Preservadas', 'Merchandising & Regalos'].map(
-                (cat) => (
+              {[
+                'Festivos',
+                'Latidos en Flor',
+                'Graduación',
+                'Set Nupcial "Sí Acepto"',
+                'Amor Eterno',
+                'Primavera Para Ti',
+              ].map((cat) => (
                   <li key={cat}>
                     <button
                       onClick={() => {
@@ -71,7 +77,12 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
               </li>
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-[#D49A89] shrink-0 mt-0.5" />
-                <span>Atención directa WhatsApp: +{settings.whatsappNumber}</span>
+                <span>
+                  Atención directa WhatsApp:{' '}
+                  {settings.whatsappNumber.length === 11 && settings.whatsappNumber.startsWith('51')
+                    ? `+51 ${settings.whatsappNumber.slice(2, 5)} ${settings.whatsappNumber.slice(5, 8)} ${settings.whatsappNumber.slice(8)}`
+                    : `+${settings.whatsappNumber}`}
+                </span>
               </li>
             </ul>
           </div>

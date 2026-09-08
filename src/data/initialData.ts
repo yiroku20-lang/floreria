@@ -1,16 +1,73 @@
 import { Product, Order, InventoryMovement, PromoConfig, BoutiqueSettings } from '../types';
 
 export const INITIAL_PRODUCTS: Product[] = [
-  // Citas & Romance
+  // 1. FESTIVOS
   {
-    id: 'romance-01',
-    name: 'Bouquet Romance Pasión Imperial',
-    category: 'Citas & Romance',
+    id: 'festivo-01',
+    name: 'Explosión Festiva de Cumpleaños',
+    category: 'Festivos',
+    subEdition: 'Edición Cumpleaños',
+    occasion: 'Cumpleaños',
+    description: 'Diseño floral festivo y radiante con gerberas multicolores, rosas frescas, liliums perfumados y toques de gypsophila. Incluye tarjeta con dedicatoria de feliz cumpleaños.',
+    price: 140.0,
+    originalPrice: 160.0,
+    stock: 16,
+    imageUrl: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Bestseller', 'Temporada'],
+    stemCount: '25 Tallos multicolor',
+    careTips: [
+      'Retirar flores que marchiten primero para dar fuerza a los botones.',
+      'Renovar agua cada 48 horas.'
+    ],
+    featured: true,
+  },
+  {
+    id: 'festivo-02',
+    name: 'Bouquet Princesa Quinceañero',
+    category: 'Festivos',
+    subEdition: 'Edición Quinceañero',
+    occasion: 'Quinceañero',
+    description: 'Exclusivo arreglo de ensueño con rosas rosadas, lilas empolvados, astilbe y detalles satinados en tonalidad pastel para la celebración inolvidable de 15 años.',
+    price: 165.0,
+    originalPrice: 185.0,
+    stock: 12,
+    imageUrl: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Exclusivo'],
+    stemCount: '20 Rosas pastel + follaje fino',
+    careTips: [
+      'Mantener en agua fresca y cortar tallos en diagonal cada 2 días.'
+    ],
+    featured: true,
+  },
+  {
+    id: 'festivo-03',
+    name: 'Box Ilusión & Fiesta Rosanfer',
+    category: 'Festivos',
+    subEdition: 'Edición Fiesta & Celebración',
+    occasion: 'Celebración',
+    description: 'Caja cilíndrica botánica con rosas en degradé, claveles importados y follaje fino de eucalipto aromático para aniversarios, fiestas o inauguraciones.',
+    price: 150.0,
+    stock: 10,
+    imageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Nuevo'],
+    stemCount: 'Composición floral en box',
+    careTips: [
+      'Hidratar la base floral con media taza de agua fría cada 24 horas.'
+    ],
+    featured: false,
+  },
+
+  // 2. LATIDOS EN FLOR
+  {
+    id: 'latidos-01',
+    name: 'Ramo Pasión Imperial (24 Rosas Rojas)',
+    category: 'Latidos en Flor',
+    subEdition: 'Edición Romance Profundo',
     occasion: 'Citas & Romance',
     description: 'Rosas rojas terciopelo de tallo largo con astilbe rosado, hipericum y follaje de eucalipto aromático en envoltura de seda negra con lazo cobrizo Rosanfer.',
     price: 165.0,
     originalPrice: 190.0,
-    stock: 16,
+    stock: 18,
     imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
     tags: ['Bestseller', 'Exclusivo'],
     stemCount: '24 Rosas rojas seleccionadas',
@@ -22,14 +79,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'romance-02',
-    name: 'Box Cita Inolvidable & Bombones',
-    category: 'Citas & Romance',
+    id: 'latidos-02',
+    name: 'Box Declaración de Amor & Bombones',
+    category: 'Latidos en Flor',
+    subEdition: 'Edición Declaración de Amor',
     occasion: 'Citas & Romance',
-    description: 'Exclusiva sombrerera artesanal con rosas rojas y tonos blush en degradé, acompañada de bombones finos y tarjeta caligrafiada para citas o aniversarios.',
+    description: 'Sombrerera artesanal con rosas rojas de exportación, toques de flor de cera, caja de bombones finos y tarjeta caligrafiada para momentos inolvidables.',
     price: 180.0,
-    stock: 10,
-    imageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1200&q=80',
+    stock: 12,
+    imageUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1200&q=80',
     tags: ['Nuevo'],
     stemCount: '18 Rosas + Bombones finos',
     careTips: [
@@ -37,12 +95,30 @@ export const INITIAL_PRODUCTS: Product[] = [
     ],
     featured: true,
   },
+  {
+    id: 'latidos-03',
+    name: 'Bouquet Dulce Mirada de Primera Cita',
+    category: 'Latidos en Flor',
+    subEdition: 'Edición Primera Cita',
+    occasion: 'Citas & Romance',
+    description: 'Rosas en tonos melocotón, capuchino y marfil, acompañadas de eucalipto baby blue. El equilibrio perfecto entre ternura y romanticismo sutil.',
+    price: 135.0,
+    stock: 14,
+    imageUrl: 'https://images.unsplash.com/photo-1516205651411-aef33a44f7c2?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Oferta'],
+    stemCount: '15 Rosas de jardín',
+    careTips: [
+      'Mantener con agua limpia y alejado del sol directo.'
+    ],
+    featured: false,
+  },
 
-  // Graduaciones & Logros
+  // 3. GRADUACIÓN
   {
     id: 'grad-01',
     name: 'Bouquet Triunfo & Honor (Girasoles & Lirios)',
-    category: 'Graduaciones',
+    category: 'Graduación',
+    subEdition: 'Edición Bachiller & Título',
     occasion: 'Graduaciones',
     description: 'El diseño preferido para colaciones y graduaciones en Cusco (UNSAAC, UAC, Andina). Girasoles andinos resplandecientes, lirios blancos, eucalipto fresco y cinta dorada de graduación.',
     price: 135.0,
@@ -59,12 +135,13 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'grad-02',
-    name: 'Ramillete Éxito & Promoción',
-    category: 'Graduaciones',
+    name: 'Ramillete Toga & Laureles Dorados',
+    category: 'Graduación',
+    subEdition: 'Edición Toga & Birrete',
     occasion: 'Graduaciones',
-    description: 'Composición vibrante de rosas amarillas de la prosperidad, mini girasoles y astromelias blancas, diseñado para lucir en fotos de toga y celebraciones académicas.',
+    description: 'Composición vibrante de rosas amarillas del éxito, mini girasoles y astromelias blancas, diseñado para lucir en fotos de toga y celebraciones académicas.',
     price: 110.0,
-    stock: 15,
+    stock: 16,
     imageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80',
     tags: ['Nuevo'],
     stemCount: '16 Tallos seleccionados',
@@ -74,246 +151,188 @@ export const INITIAL_PRODUCTS: Product[] = [
     ],
     featured: false,
   },
-
-  // Cumpleaños & Celebración
   {
-    id: 'bday-01',
-    name: 'Explosión Primaveral de Cumpleaños',
-    category: 'Cumpleaños',
-    occasion: 'Cumpleaños',
-    description: 'Diseño floral festivo y alegre con gerberas multicolores, rosas frescas, liliums perfumados y toques de gypsophila. Incluye tarjeta con dedicatoria de feliz cumpleaños.',
-    price: 140.0,
-    originalPrice: 160.0,
-    stock: 14,
-    imageUrl: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Bestseller', 'Temporada'],
-    stemCount: '25 Tallos multicolor',
-    careTips: [
-      'Retirar flores que marchiten primero para dar fuerza a los botones.',
-      'Renovar agua cada 48 horas.'
-    ],
-    featured: true,
-  },
-  {
-    id: 'bday-02',
-    name: 'Box Festivo Celebración Rosanfer',
-    category: 'Cumpleaños',
-    occasion: 'Cumpleaños',
-    description: 'Caja cilíndrica de diseño botánico con tulipanes amarillos y rosas rosadas, hortensias y follaje fino para iluminar el día de cumpleaños.',
-    price: 175.0,
-    stock: 12,
-    imageUrl: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Nuevo', 'Exclusivo'],
-    stemCount: 'Composición floral en box',
-    careTips: [
-      'Regar suavemente la base floral cada 2 días con agua fría.'
-    ],
-    featured: false,
-  },
-
-  // Condolencias & Homenaje (Sutil, solemne y formal)
-  {
-    id: 'peace-01',
-    name: 'Arreglo Serenidad & Paz (Lirios Blancos & Rosas)',
-    category: 'Condolencias & Homenaje',
-    occasion: 'Condolencias & Homenaje',
-    description: 'Sutil y solemne composición en base de cerámica con lirios orientales blancos, rosas marfil y follaje verde bosque. Expresa respeto, pésame y consuelo con la mayor delicadeza.',
-    price: 155.0,
-    stock: 12,
+    id: 'grad-03',
+    name: 'Bouquet Magna Promoción UNSAAC',
+    category: 'Graduación',
+    subEdition: 'Edición Promoción Universitaria',
+    occasion: 'Graduaciones',
+    description: 'Elegante bouquet de rosas blancas, liliums perfumados y follaje noble con cinta conmemorativa para colaciones y títulos profesionales en Cusco.',
+    price: 145.0,
+    stock: 15,
     imageUrl: 'https://images.unsplash.com/photo-1589244159943-460088ed5c92?auto=format&fit=crop&w=1200&q=80',
     tags: ['Exclusivo'],
-    stemCount: '20 Tallos blancos seleccionados',
+    stemCount: '20 Tallos de gala',
     careTips: [
-      'Base con esponja floral hidratada; humedecer cada día con agua fresca.'
+      'Colocar en agua fresca limpia con conservante floral.'
+    ],
+    featured: true,
+  },
+
+  // 4. SET NUPCIAL "SÍ ACEPTO"
+  {
+    id: 'nupcial-01',
+    name: 'Ramo de Novia Imperial "Sí Acepto"',
+    category: 'Set Nupcial "Sí Acepto"',
+    subEdition: 'Ramo de Novia Principal',
+    occasion: 'Matrimonio',
+    description: 'Magistral bouquet nupcial en forma de domo estructurado con rosas blancas importadas, lisianthus marfil, flor de cera y caída ligera de eucalipto dólar. Atado a mano con cinta de seda y encaje.',
+    price: 240.0,
+    originalPrice: 280.0,
+    stock: 8,
+    imageUrl: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Bestseller', 'Exclusivo'],
+    stemCount: 'Bouquet de novia con flores importadas',
+    careTips: [
+      'Mantener en agua fresca hasta el momento de la ceremonia.',
+      'Rociar levemente con atomizador.'
     ],
     featured: true,
   },
   {
-    id: 'peace-02',
-    name: 'Corona Floral Homenaje Eterno',
-    category: 'Condolencias & Homenaje',
-    occasion: 'Condolencias & Homenaje',
-    description: 'Corona floral artesanal montada sobre atril de madera, elaborada con rosas blancas de exportación, claveles de paz, liliums y follaje solemne. Incluye cinta caligrafiada de condolencias.',
-    price: 240.0,
-    stock: 8,
-    imageUrl: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Exclusivo'],
-    stemCount: 'Corona con atril + cinta formal',
+    id: 'nupcial-02',
+    name: 'Set Boda Civil & Fiesta Íntima',
+    category: 'Set Nupcial "Sí Acepto"',
+    subEdition: 'Edición Boda Civil',
+    occasion: 'Boda Civil',
+    description: 'Arreglo estilizado y cómodo de portar, perfecto para bodas civiles en Cusco o sesiones fotográficas en Sacsayhuamán y el Valle Sagrado. Incluye corona floral a juego.',
+    price: 195.0,
+    stock: 9,
+    imageUrl: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Nuevo', 'Exclusivo'],
+    stemCount: 'Set civil ramo + tiara floral',
     careTips: [
-      'Montaje artesanal con hidratación continua para ceremonias y velatorios.'
+      'Conservar en sitio fresco y sombreado.'
     ],
-    featured: false,
+    featured: true,
   },
   {
-    id: 'peace-03',
-    name: 'Pedestal Solemne de Recuerdo y Paz',
-    category: 'Condolencias & Homenaje',
-    occasion: 'Condolencias & Homenaje',
-    description: 'Arreglo floral estilizado de pie con gladiolos blancos, lirios orientales de paz y follaje de eucalipto andino. Presencia sobria y reconfortante para homenajes y despedidas.',
-    price: 210.0,
+    id: 'nupcial-03',
+    name: 'Dúo Nupcial Novia + Boutonnière del Novio',
+    category: 'Set Nupcial "Sí Acepto"',
+    subEdition: 'Dúo Nupcial Completo',
+    occasion: 'Matrimonio',
+    description: 'Combinación coordinada: ramo de novia en armonía botánica más el prendedor floral (boutonnière) para la solapa del traje del novio con sujeción segura.',
+    price: 260.0,
     stock: 6,
-    imageUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
     tags: ['Exclusivo'],
-    stemCount: 'Pedestal floral con cinta personalizada',
+    stemCount: 'Ramo de novia + Prendedor novio',
     careTips: [
-      'Entrega solemne y puntual en el lugar indicado en Cusco y alrededores.'
+      'Entregado en caja protectora climatizada.'
     ],
     featured: false,
   },
 
-  // Tulipanes Holandeses
+  // 5. AMOR ETERNO
   {
-    id: 'tulip-01',
-    name: 'Tulipanes Holandeses Sinfonía',
-    category: 'Tulipanes',
-    occasion: 'Citas & Romance',
-    description: 'Espectacular ramillete de tulipanes holandeses en tonos amarillo radiante, naranja atardecer y rosa pastel, acompañados de follaje fresco de eucalipto.',
+    id: 'eterno-01',
+    name: 'Cúpula de Rosa Preservada "Rosa Eterna"',
+    category: 'Amor Eterno',
+    subEdition: 'Edición Cúpula de Cristal',
+    occasion: 'Aniversarios',
+    description: 'Auténtica rosa roja preservada tratada con aceites botánicos que mantiene su textura y color vívido de 3 a 5 años. Resguardada en cúpula de vidrio soplado sobre base de madera noble.',
+    price: 195.0,
+    originalPrice: 220.0,
+    stock: 14,
+    imageUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Bestseller', 'Exclusivo'],
+    stemCount: '1 Rosa eterna preservada de lujo',
+    careTips: [
+      'No necesita agua ni luz solar directa.',
+      'Mantener dentro de la cúpula para resguardar del polvo.'
+    ],
+    featured: true,
+  },
+  {
+    id: 'eterno-02',
+    name: 'Cofre Botánico Perpetuo & Lavanda',
+    category: 'Amor Eterno',
+    subEdition: 'Edición Cofre Joyero',
+    occasion: 'Amor Infinito',
+    description: 'Caja de diseño estilo joyero con mini rosas preservadas, hortensias deshidratadas, flor de arroz y aroma a lavanda silvestre. Un recuerdo eterno sin necesidad de agua.',
+    price: 175.0,
+    stock: 10,
+    imageUrl: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Nuevo'],
+    stemCount: 'Cofre con flores preservadas',
+    careTips: [
+      'Conservar en ambiente seco sin humedad.'
+    ],
+    featured: false,
+  },
+  {
+    id: 'eterno-03',
+    name: 'Dúo de Rosas Preservadas en Campana',
+    category: 'Amor Eterno',
+    subEdition: 'Edición Dúo Perpetuo',
+    occasion: 'Compromiso',
+    description: 'Dos rosas eternas entrelazadas (rojo terciopelo y blanco marfil) simbolizando el vínculo indestructible. Incluye placa grabada y tarjeta especial.',
+    price: 230.0,
+    stock: 7,
+    imageUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Exclusivo'],
+    stemCount: '2 Rosas preservadas en campana',
+    careTips: [
+      'Duración superior a 3 años.'
+    ],
+    featured: true,
+  },
+
+  // 6. PRIMAVERA PARA TI
+  {
+    id: 'primavera-01',
+    name: 'Sinfonía de Tulipanes Holandeses',
+    category: 'Primavera Para Ti',
+    subEdition: 'Edición Tulipanes Holandeses',
+    occasion: 'Agradecimiento',
+    description: 'Espectacular ramillete de tulipanes holandeses en tonos amarillo radiante, naranja atardecer y rosa pastel, envueltos en fino papel kraft botánico con lazo cobrizo.',
     price: 145.0,
     originalPrice: 170.0,
     stock: 18,
     imageUrl: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=1200&q=80',
     tags: ['Bestseller', 'Temporada'],
-    stemCount: '20 Tallos seleccionados',
+    stemCount: '20 Tulipanes seleccionados',
     careTips: [
       'Colocar en agua muy fría con cubitos de hielo para prolongar su turgencia.',
       'Cortar 1 cm de tallo en ángulo cada dos días.',
-      'Mantener alejado de fuentes directas de calor y frutas maduras.'
+      'Mantener alejado de fuentes directas de calor.'
     ],
     featured: true,
   },
   {
-    id: 'tulip-02',
-    name: 'Tulipanes Dulce Amanecer',
-    category: 'Tulipanes',
-    occasion: 'Cumpleaños',
-    description: 'Armoniosa combinación de tulipanes rosa blush y blanco marfil envueltos en papel coreano satinado y lazo de seda en tono terracota Rosanfer.',
-    price: 125.0,
+    id: 'primavera-02',
+    name: 'Bouquet Silvestre Andino & Girasoles',
+    category: 'Primavera Para Ti',
+    subEdition: 'Edición Mix Silvestre',
+    occasion: 'Detalle Cotidiano',
+    description: 'Frescura matutina con girasoles andinos, mini rosas, margaritas silvestres, espigas de trigo andino y eucalipto fresco. Alegría pura para iluminar cualquier espacio.',
+    price: 120.0,
+    stock: 22,
+    imageUrl: 'https://images.unsplash.com/photo-1507290439931-a861b5a38200?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Oferta'],
+    stemCount: '18 Tallos frescos silvestres',
+    careTips: [
+      'Renovar el agua cada 24 horas y mantener en lugar fresco.'
+    ],
+    featured: false,
+  },
+  {
+    id: 'primavera-03',
+    name: 'Tulipanes & Hortensias Dulce Amanecer',
+    category: 'Primavera Para Ti',
+    subEdition: 'Edición Dulce Amanecer',
+    occasion: 'Ternura',
+    description: 'Armoniosa combinación de tulipanes rosa blush, hortensias celestes y follaje fino. El regalo perfecto para transmitir gratitud, admiración o una dulce sorpresa.',
+    price: 155.0,
     stock: 12,
-    imageUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
     tags: ['Nuevo'],
-    stemCount: '15 Tallos premium',
+    stemCount: '16 Tallos de jardín',
     careTips: [
-      'Requiere agua fresca diaria.',
-      'Evitar la exposición al sol directo de mediodía.'
+      'Cambiar el agua a diario y recortar tallos levemente.'
     ],
     featured: true,
-  },
-
-  // Rosas de Lujo
-  {
-    id: 'rose-01',
-    name: 'Ramo Velvet Garden de Rosas',
-    category: 'Rosas de Lujo',
-    occasion: 'Citas & Romance',
-    description: 'Exclusivas rosas jardín en tonos rosa empolvado, capuchino y melocotón suave, entrelazadas con flor de cera y follaje silvestre aromático.',
-    price: 185.0,
-    originalPrice: 210.0,
-    stock: 14,
-    imageUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Bestseller', 'Exclusivo'],
-    stemCount: '24 Rosas Garden premium',
-    careTips: [
-      'Retirar hojas sumergidas en el agua para evitar bacterias.',
-      'Agregar el conservante floral incluido en el paquete.',
-      'Cortar tallos en bisel con tijera afilada.'
-    ],
-    featured: true,
-  },
-  {
-    id: 'rose-02',
-    name: 'Rosa Eterna Rosanfer en Cúpula',
-    category: 'Rosas de Lujo',
-    occasion: 'Aniversarios',
-    description: 'Rosa preservada 100% natural con acabado aperlado en base de madera nogal y cúpula de cristal templado. Dura más de 3 años sin agua.',
-    price: 135.0,
-    stock: 8,
-    imageUrl: 'https://images.unsplash.com/photo-1550985616-10810253b84d?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Exclusivo'],
-    stemCount: '1 Flor preservada de lujo',
-    careTips: [
-      'No necesita agua ni luz solar.',
-      'Mantener dentro de la cúpula para proteger del polvo.'
-    ],
-    featured: false,
-  },
-
-  // Ramos de Autor
-  {
-    id: 'bouquet-01',
-    name: 'Bouquet Ranúnculos & Eucalipto Silvestre',
-    category: 'Ramos de Autor',
-    occasion: 'Agradecimiento',
-    description: 'Inspirado en nuestro taller botánico: voluptuosos ranúnculos en capas color durazno, lavanda silvestre y eucalipto cinerea en jarrón artesanal.',
-    price: 160.0,
-    stock: 9,
-    imageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Nuevo', 'Temporada'],
-    stemCount: '28 Tallos mixtos',
-    careTips: [
-      'Renovar el agua cada 48 horas.',
-      'Rociar sutilmente los pétalos con spray de agua limpia.'
-    ],
-    featured: true,
-  },
-
-  // Flores Preservadas
-  {
-    id: 'dried-01',
-    name: 'Arreglo Boho de Flores Preservadas',
-    category: 'Flores Preservadas',
-    occasion: 'General',
-    description: 'Composición botánica duradera con pampas grass, ruscus blanqueado, trigo dorado, eucalipto preserved y flores secas de lavanda.',
-    price: 140.0,
-    stock: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Exclusivo'],
-    stemCount: 'Composición duradera (+2 años)',
-    careTips: [
-      'No regar. Conservar en ambiente seco.',
-      'Limpiar el polvo con aire tibio o plumero suave.'
-    ],
-    featured: false,
-  },
-
-  // Merchandising & Regalos
-  {
-    id: 'merch-01',
-    name: 'Florero de Cerámica Sage Rosanfer',
-    category: 'Merchandising & Regalos',
-    occasion: 'General',
-    description: 'Florero de autor fabricado a mano en cerámica mate color verde salvia (#5C715E) con grabado en relieve del emblema botánico Rosanfer Florería.',
-    price: 65.0,
-    originalPrice: 80.0,
-    stock: 11,
-    imageUrl: 'https://images.unsplash.com/photo-1612196808214-b8e1d6145a8c?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Bestseller', 'Exclusivo'],
-    careTips: ['Lavar a mano con esponja suave.', 'Apto para arreglos con agua.'],
-    featured: true,
-  },
-  {
-    id: 'merch-02',
-    name: 'Delantal de Lino Artesanal Rosanfer',
-    category: 'Merchandising & Regalos',
-    occasion: 'General',
-    description: 'El icónico delantal de lino verde salvia utilizado por nuestros floristas maestros. Bordado con hilo metalizado cobrizo y doble bolsillo porta-tijeras.',
-    price: 85.0,
-    stock: 6,
-    imageUrl: 'https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Exclusivo'],
-    careTips: ['Lavar en agua fría, planchado a temperatura media.'],
-    featured: false,
-  },
-  {
-    id: 'merch-03',
-    name: 'Luxury Botanical Gift Box & Tijeras de Poda',
-    category: 'Merchandising & Regalos',
-    occasion: 'General',
-    description: 'Caja rígida craft con sello de lacre Rosanfer, tijeras de poda japonesas en acabado bronce bruñido, rocío botánico aromático y tarjeta de felicitación.',
-    price: 95.0,
-    stock: 10,
-    imageUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Nuevo'],
-    featured: false,
   }
 ];
 
@@ -463,15 +482,19 @@ export const INITIAL_PROMO: PromoConfig = {
   badge: 'Temporada Floral 2026',
   couponCode: 'TULIPAN15',
   driveImageUrl: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=1000&q=80',
-  ctaText: 'Ver Colección de Tulipanes',
-  categoryRedirect: 'Tulipanes',
+  ctaText: 'Ver Colección Primavera',
+  categoryRedirect: 'Primavera Para Ti',
 };
 
 export const INITIAL_SETTINGS: BoutiqueSettings = {
-  whatsappNumber: '51984234567',
+  whatsappNumber: '51989415220',
   storeName: 'Rosanfer Florería',
   storeAddress: 'Av. La Cultura 1420 (frente a UNSAAC), Magisterio',
   storeCity: 'Cusco, Perú',
   openingHours: 'Lunes a Sábado: 8:00 AM - 8:30 PM | Domingo: 8:30 AM - 3:00 PM',
   defaultDeliveryFee: 12.0,
+  yapeNumber: '989 415 220',
+  yapeHolder: 'Rosanfer Florería / Andrea V.',
+  bcpAccount: '215-98765432-0-12',
+  interbankAccount: '003-892-0134567890-44',
 };

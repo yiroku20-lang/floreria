@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Eye, Check, AlertCircle, Sparkles } from 'lucide-react';
+import { ShoppingBag, Eye, Check, AlertCircle, Phone } from 'lucide-react';
 import { Product } from '../types';
 import { formatCurrency, transformDriveUrl } from '../utils/driveUtils';
 
@@ -7,12 +7,14 @@ interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product, quantity?: number) => void;
   onOpenDetail: (product: Product) => void;
+  whatsappNumber?: string;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onAddToCart,
   onOpenDetail,
+  whatsappNumber,
 }) => {
   const [isAdded, setIsAdded] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -23,6 +25,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onAddToCart(product, 1);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1600);
+  };
+
+  const handleQuickWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const cleanNumber = (whatsappNumber || '51989415220').replace(/\D/g, '');
+    const message = encodeURIComponent(
+      `Hola, quisiera pedir el arreglo "${product.name}" (S/.${product.price})`
+    );
+    window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank', 'noopener,noreferrer');
   };
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
@@ -47,14 +58,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           loading="lazy"
           onError={() => setImgError(true)}
           style={
-            product.framing && !displayImage.startsWith('data:image')
+            product.framing
               ? {
-                  transform: `scale(${product.framing.zoom}) translate(${product.framing.x}%, ${product.framing.y}%) rotate(${product.framing.rotation || 0}deg)`,
+                  objectPosition: `${50 + (product.framing.x || 0)}% ${50 + (product.framing.y || 0)}%`,
+                  transform: `scale(${Math.max(1, product.framing.zoom || 1)}) rotate(${product.framing.rotation || 0}deg)`,
                   transformOrigin: 'center center',
                 }
               : undefined
           }
-          className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+          className="w-full h-full object-cover object-center transition-transform duration-500 ease-out"
         />
 
         {/* Top Badges */}
@@ -109,13 +121,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Product Content info */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between text-xs text-[#5C715E] font-medium tracking-wide mb-1">
-            <span>{product.category}</span>
-            {product.stemCount && (
-              <span className="text-[11px] text-[#2C362D]/60 hidden sm:inline">
+          <div className="flex items-center justify-between text-xs text-[#5C715E] font-medium tracking-wide mb-1 gap-2">
+            <span className="truncate">{product.category}</span>
+            {product.subEdition ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#5C715E]/10 text-[#5C715E] font-semibold truncate shrink-0">
+                {product.subEdition}
+              </span>
+            ) : product.stemCount ? (
+              <span className="text-[11px] text-[#2C362D]/60 hidden sm:inline truncate shrink-0">
                 {product.stemCount}
               </span>
-            )}
+            ) : null}
           </div>
 
           <h3 className="font-serif-boutique font-bold text-lg sm:text-xl text-[#2C362D] group-hover:text-[#5C715E] transition-colors line-clamp-1">
@@ -127,7 +143,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </p>
         </div>
 
-        {/* Pricing & Stock & Add to Cart button */}
+        {/* Pricing & Stock & Purchase Actions */}
         <div className="mt-4 pt-3 border-t border-[#5C715E]/10 flex items-center justify-between gap-2">
           <div>
             <div className="flex items-baseline gap-1.5">
@@ -155,31 +171,48 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </div>
           </div>
 
-          {/* Add to Cart Button */}
-          <button
-            id={`btn-add-to-cart-${product.id}`}
-            onClick={handleAdd}
-            disabled={isOutOfStock}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 active:scale-95 shadow-sm ${
-              isAdded
-                ? 'bg-emerald-700 text-white'
-                : isOutOfStock
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-[#5C715E] hover:bg-[#4a5c4c] text-white hover:shadow-md'
-            }`}
-          >
-            {isAdded ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                <span>Listo</span>
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Añadir</span>
-              </>
-            )}
-          </button>
+          {/* Action Buttons: WhatsApp Quick Order + Comprar Button */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Quick WhatsApp order button */}
+            <button
+              id={`btn-wa-order-${product.id}`}
+              type="button"
+              onClick={handleQuickWhatsApp}
+              className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-xs"
+              title="Pedir directamente por WhatsApp"
+              aria-label={`Pedir ${product.name} por WhatsApp`}
+            >
+              <Phone className="w-3.5 h-3.5 fill-current" />
+              <span className="hidden sm:inline text-[11px] font-bold">WhatsApp</span>
+            </button>
+
+            {/* Primary Buy Button */}
+            <button
+              id={`btn-add-to-cart-${product.id}`}
+              type="button"
+              onClick={handleAdd}
+              disabled={isOutOfStock}
+              className={`py-2 px-3.5 sm:px-4 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all duration-200 active:scale-95 shadow-xs cursor-pointer ${
+                isAdded
+                  ? 'bg-emerald-600 text-white shadow-emerald-200'
+                  : isOutOfStock
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-[#5C715E] hover:bg-[#4a5c4c] text-white hover:shadow-md'
+              }`}
+            >
+              {isAdded ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span className="inline-flex">¡Agregado!</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span className="inline-flex">Comprar</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

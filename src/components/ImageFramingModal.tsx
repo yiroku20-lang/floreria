@@ -164,11 +164,13 @@ export const ImageFramingModal: React.FC<ImageFramingModalProps> = ({
     setImageError(null);
 
     if (initialFraming) {
-      setZoom(initialFraming.zoom || 1);
+      setZoom(Math.max(1, initialFraming.zoom || 1));
       setRotation(initialFraming.rotation || 0);
+      const safeInitX = Math.min(50, Math.max(-50, initialFraming.x || 0));
+      const safeInitY = Math.min(50, Math.max(-50, initialFraming.y || 0));
       setOffset({
-        x: (initialFraming.x / 100) * (FRAME_SIZE / 2),
-        y: (initialFraming.y / 100) * (FRAME_SIZE / 2),
+        x: (safeInitX / 50) * (FRAME_SIZE / 2),
+        y: (safeInitY / 50) * (FRAME_SIZE / 2),
       });
     } else {
       setZoom(1);
@@ -352,18 +354,33 @@ export const ImageFramingModal: React.FC<ImageFramingModalProps> = ({
 
     setIsProcessing(true);
 
+    const safeX = Number(Math.min(50, Math.max(-50, (offset.x / (FRAME_SIZE / 2)) * 50)).toFixed(1));
+    const safeY = Number(Math.min(50, Math.max(-50, (offset.y / (FRAME_SIZE / 2)) * 50)).toFixed(1));
+
     const framingData: ImageFraming = {
-      zoom: Number(zoom.toFixed(2)),
-      x: Number(((offset.x / (FRAME_SIZE / 2)) * 100).toFixed(1)),
-      y: Number(((offset.y / (FRAME_SIZE / 2)) * 100).toFixed(1)),
+      zoom: Number(Math.max(1, zoom).toFixed(2)),
+      x: safeX,
+      y: safeY,
       rotation,
     };
+
+    const isWebUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+
+    // If the image is a web URL or Google Drive link, preserve the original clean URL.
+    // The CSS objectPosition + scale framing renders the 1:1 view flawlessly
+    // across all cards and modals without wasting 5MB of LocalStorage on Base64 strings.
+    if (isWebUrl) {
+      onSaveCropped(imageUrl, imageUrl, framingData);
+      setIsProcessing(false);
+      onClose();
+      return;
+    }
 
     let exportedDataUrl: string | null = null;
 
     try {
-      // Create high-resolution export canvas (800x800)
-      const EXPORT_SIZE = 800;
+      // For local data/blob images, create a compact lightweight JPEG (400x400, quality 0.72)
+      const EXPORT_SIZE = 400;
       const exportCanvas = document.createElement('canvas');
       exportCanvas.width = EXPORT_SIZE;
       exportCanvas.height = EXPORT_SIZE;
@@ -407,27 +424,20 @@ export const ImageFramingModal: React.FC<ImageFramingModalProps> = ({
         ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
         ctx.restore();
 
-        // Export as high quality JPEG
-        exportedDataUrl = exportCanvas.toDataURL('image/jpeg', 0.92);
+        // Export as lightweight compressed JPEG
+        exportedDataUrl = exportCanvas.toDataURL('image/jpeg', 0.72);
       }
     } catch {
-      // Canvas was tainted or browser restricted toDataURL
-      // Handled cleanly without emitting error logs
+      // Canvas tainted fallback handled gracefully
     }
 
-    if (!exportedDataUrl) {
-      try {
-        const mainCanvas = canvasRef.current;
-        if (mainCanvas) {
-          exportedDataUrl = mainCanvas.toDataURL('image/jpeg', 0.92);
-        }
-      } catch {
-        // Tainted as well, fall back gracefully
-      }
+    // If canvas directly generated a cropped 1:1 image, it is already cropped and doesn't need secondary framing
+    if (exportedDataUrl) {
+      onSaveCropped(exportedDataUrl, imageUrl, undefined);
+    } else {
+      onSaveCropped(imageUrl, imageUrl, framingData);
     }
 
-    // Call onSaveCropped with exported image or resolved URL, along with framing metadata
-    onSaveCropped(exportedDataUrl || resolvedUrl, imageUrl, framingData);
     setIsProcessing(false);
     onClose();
   };

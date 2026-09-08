@@ -1,7 +1,77 @@
 import React, { useState, useMemo } from 'react';
-import { Sparkles, ArrowUpDown, Heart, GraduationCap, Cake, Bird, Flower2, Gift, RefreshCw } from 'lucide-react';
-import { Product } from '../types';
+import {
+  Sparkles,
+  ArrowUpDown,
+  Heart,
+  GraduationCap,
+  PartyPopper,
+  Crown,
+  Infinity as InfinityIcon,
+  Flower2,
+  RefreshCw,
+  X,
+} from 'lucide-react';
+import { Product, ProductCategory } from '../types';
 import { ProductCard } from './ProductCard';
+
+export interface CategoryInfo {
+  name: ProductCategory;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tagline: string;
+  description: string;
+}
+
+export const OFFICIAL_CATEGORIES: CategoryInfo[] = [
+  {
+    name: 'Festivos',
+    label: 'Festivos',
+    icon: PartyPopper,
+    tagline: 'Cumpleaños, Quinceañeros & Celebraciones',
+    description:
+      'Arreglos dinámicos y coloridos diseñados para llenar de alegría momentos inolvidables en Cusco.',
+  },
+  {
+    name: 'Latidos en Flor',
+    label: 'Latidos en Flor',
+    icon: Heart,
+    tagline: 'Romance, Aniversarios & Amor',
+    description:
+      'El lenguaje más sublime del amor: bouquets de rosas rojas de exportación y lirios finos preparados con el toque íntimo de nuestro taller.',
+  },
+  {
+    name: 'Graduación',
+    label: 'Graduación',
+    icon: GraduationCap,
+    tagline: 'Colaciones Académicas & Títulos',
+    description:
+      'Homenaje al esfuerzo y la excelencia con girasoles andinos resplandecientes, lirios y cintas doradas de honor.',
+  },
+  {
+    name: 'Set Nupcial "Sí Acepto"',
+    label: 'Set Nupcial "Sí Acepto"',
+    icon: Crown,
+    tagline: 'Bodas en Cusco & El Valle Sagrado',
+    description:
+      'Arreglos y sets nupciales a medida: ramos de novia principales, tocados, boutonnieres y alta floristería matrimonial.',
+  },
+  {
+    name: 'Amor Eterno',
+    label: 'Amor Eterno',
+    icon: InfinityIcon,
+    tagline: 'Flores 100% Preservadas que Duran Años',
+    description:
+      'Rosas eternas naturales encapsuladas en cúpulas de cristal finas y cofres joyeros que conservan su belleza por años sin marchitar.',
+  },
+  {
+    name: 'Primavera Para Ti',
+    label: 'Primavera Para Ti',
+    icon: Flower2,
+    tagline: 'Tulipanes Holandeses & Frescura',
+    description:
+      'Vivacidad botánica, tulipanes de importación y mixturas florales campestres frescas para iluminar cualquier espacio.',
+  },
+];
 
 interface CatalogSectionProps {
   products: Product[];
@@ -11,6 +81,7 @@ interface CatalogSectionProps {
   onResetFilters: () => void;
   onAddToCart: (product: Product, quantity?: number) => void;
   onOpenDetail: (product: Product) => void;
+  whatsappNumber?: string;
 }
 
 export const CatalogSection: React.FC<CatalogSectionProps> = ({
@@ -21,34 +92,22 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
   onResetFilters,
   onAddToCart,
   onOpenDetail,
+  whatsappNumber,
 }) => {
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured');
-  const [filterMode, setFilterMode] = useState<'ocasiones' | 'flores'>('ocasiones');
 
-  const cuscOccasions = [
-    { label: 'Citas & Romance', value: 'Citas & Romance', icon: Heart, desc: 'Rosas rojas, bouquets para citas y aniversarios' },
-    { label: 'Graduaciones', value: 'Graduaciones', icon: GraduationCap, desc: 'Girasoles andinos y lirios para colaciones en Cusco' },
-    { label: 'Cumpleaños', value: 'Cumpleaños', icon: Cake, desc: 'Diseños coloridos y festivos con dedicatoria' },
-    { label: 'Condolencias & Homenaje', value: 'Condolencias & Homenaje', icon: Bird, desc: 'Arreglos sobrios, coronas y pedestales con cinta formal' },
-  ];
-
-  const flowerCollections = [
-    { label: 'Tulipanes Holandeses', value: 'Tulipanes', icon: Flower2 },
-    { label: 'Rosas de Lujo', value: 'Rosas de Lujo', icon: Sparkles },
-    { label: 'Ramos de Autor', value: 'Ramos de Autor', icon: Flower2 },
-    { label: 'Flores Preservadas', value: 'Flores Preservadas', icon: Sparkles },
-    { label: 'Regalos & Merch', value: 'Merchandising & Regalos', icon: Gift },
-  ];
+  // Active category definition
+  const currentCategoryInfo = useMemo(() => {
+    return OFFICIAL_CATEGORIES.find((c) => c.name === activeCategory);
+  }, [activeCategory]);
 
   const filteredProducts = useMemo(() => {
     let list = [...products];
 
-    // Category / Occasion filter
+    // Main Category filter
     if (activeCategory !== 'Todos') {
       list = list.filter(
-        (p) =>
-          p.category === activeCategory ||
-          p.occasion === activeCategory
+        (p) => p.category === activeCategory || p.occasion === activeCategory
       );
     }
 
@@ -60,6 +119,7 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
+          (p.subEdition && p.subEdition.toLowerCase().includes(q)) ||
           (p.occasion && p.occasion.toLowerCase().includes(q)) ||
           p.tags?.some((t) => t.toLowerCase().includes(q))
       );
@@ -82,202 +142,182 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
 
   return (
     <section id="catalogo-section" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Section Header with Cusco Context */}
+      {/* Section Header */}
       <div className="text-center max-w-2xl mx-auto mb-8">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#5C715E]/10 text-[#5C715E] text-xs font-semibold uppercase tracking-wider mb-2">
           <Sparkles className="w-3.5 h-3.5 text-[#D49A89]" />
-          <span>Catálogo Floral Cusco</span>
+          <span>Colecciones Exclusivas • Rosanfer Cusco</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-serif-boutique font-bold text-[#2C362D] tracking-tight">
-          Arreglos para Cada Momento
+          Nuestras 6 Colecciones Principales
         </h2>
         <p className="mt-2 text-sm sm:text-base text-[#2C362D]/75 font-light leading-relaxed">
-          Flores frescas de alta gama en Cusco: arreglos para citas, celebraciones de grado, cumpleaños y homenajes florales solemnes con entrega puntual garantizada.
+          Diseños de autor para cada emoción: festivos, romance en flor, graduaciones, bodas de ensueño, flores eternas y tulipanes de primavera con entrega puntual en todo Cusco.
         </p>
       </div>
 
-      {/* Filter Mode Selector: Ocasiones Populares vs. Variedades */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="inline-flex p-1 rounded-full bg-[#5C715E]/10 border border-[#5C715E]/15">
-          <button
-            id="tab-filter-ocasiones"
-            onClick={() => setFilterMode('ocasiones')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-              filterMode === 'ocasiones'
-                ? 'bg-[#5C715E] text-white shadow-xs'
-                : 'text-[#2C362D]/75 hover:text-[#5C715E]'
-            }`}
-          >
-            Ocasiones Populares en Cusco
-          </button>
-          <button
-            id="tab-filter-flores"
-            onClick={() => setFilterMode('flores')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-              filterMode === 'flores'
-                ? 'bg-[#5C715E] text-white shadow-xs'
-                : 'text-[#2C362D]/75 hover:text-[#5C715E]'
-            }`}
-          >
-            Por Tipo de Flor & Colección
-          </button>
-        </div>
-      </div>
-
-      {/* Interactive Filter Pills */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-[#5C715E]/15">
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
-          {/* 'Todos' Button */}
+      {/* Primary Category Selector Bar (Spacious, fluid wrap, perfectly readable) */}
+      <div className="mb-6">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+          {/* 'Todas' Button */}
           <button
             id="filter-cat-todos"
             onClick={() => onSelectCategory('Todos')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shadow-2xs ${
               activeCategory === 'Todos'
-                ? 'bg-[#5C715E] text-white shadow-xs'
-                : 'bg-white text-[#2C362D]/80 hover:bg-[#5C715E]/10 border border-[#5C715E]/20'
+                ? 'bg-[#5C715E] text-white shadow-sm ring-2 ring-[#5C715E]/30 font-bold'
+                : 'bg-white text-[#2C362D]/85 hover:bg-[#5C715E]/10 border border-[#5C715E]/20'
             }`}
           >
-            Todos ({products.length})
+            <span>Todas las Colecciones</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                activeCategory === 'Todos'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-gray-100 text-[#5C715E]'
+              }`}
+            >
+              {products.length}
+            </span>
           </button>
 
-          {/* Ocasiones Tab Content */}
-          {filterMode === 'ocasiones' ? (
-            cuscOccasions.map((occ) => {
-              const Icon = occ.icon;
-              const isSelected = activeCategory === occ.value;
-              return (
-                <button
-                  key={occ.value}
-                  id={`filter-occ-${occ.value.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                  onClick={() => onSelectCategory(occ.value)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-[#5C715E] text-white shadow-xs'
-                      : 'bg-white text-[#2C362D]/80 hover:bg-[#5C715E]/10 border border-[#5C715E]/20'
+          {/* 6 Official Category Pills */}
+          {OFFICIAL_CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            const isSelected = activeCategory === cat.name;
+            const count = products.filter((p) => p.category === cat.name).length;
+            return (
+              <button
+                key={cat.name}
+                id={`filter-cat-${cat.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                onClick={() => onSelectCategory(cat.name)}
+                className={`px-4 py-2.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shadow-2xs ${
+                  isSelected
+                    ? 'bg-[#5C715E] text-white shadow-sm ring-2 ring-[#5C715E]/30 font-bold'
+                    : 'bg-white text-[#2C362D]/85 hover:bg-[#5C715E]/10 border border-[#5C715E]/20'
+                }`}
+                title={cat.tagline}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    isSelected ? 'text-[#FBF9F6]' : 'text-[#5C715E]'
                   }`}
-                  title={occ.desc}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#FBF9F6]' : 'text-[#5C715E]'}`} />
-                  <span>{occ.label}</span>
-                </button>
-              );
-            })
-          ) : (
-            flowerCollections.map((col) => {
-              const Icon = col.icon;
-              const isSelected = activeCategory === col.value;
-              return (
-                <button
-                  key={col.value}
-                  id={`filter-col-${col.value.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                  onClick={() => onSelectCategory(col.value)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                />
+                <span>{cat.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
                     isSelected
-                      ? 'bg-[#5C715E] text-white shadow-xs'
-                      : 'bg-white text-[#2C362D]/80 hover:bg-[#5C715E]/10 border border-[#5C715E]/20'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-[#5C715E]/10 text-[#5C715E]'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#FBF9F6]' : 'text-[#5C715E]'}`} />
-                  <span>{col.label}</span>
-                </button>
-              );
-            })
-          )}
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Sort selector & Count */}
-        <div className="flex items-center justify-between w-full md:w-auto gap-4">
-          <span className="text-xs text-[#2C362D]/60 whitespace-nowrap">
-            <strong>{filteredProducts.length}</strong> arreglos
-          </span>
+        {/* Sub-bar: Status and Sort Controls */}
+        <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#5C715E]/15">
+          <div className="flex items-center gap-2.5 text-xs text-[#2C362D]/75">
+            <span>
+              Mostrando <strong className="text-[#2C362D]">{filteredProducts.length}</strong> arreglos
+            </span>
+            {activeCategory !== 'Todos' && (
+              <span className="inline-flex items-center gap-1 bg-[#5C715E]/10 text-[#5C715E] px-2.5 py-0.5 rounded-full font-semibold">
+                <span>{activeCategory}</span>
+                <button
+                  onClick={() => onSelectCategory('Todos')}
+                  className="hover:text-red-600 transition-colors cursor-pointer"
+                  title="Quitar filtro"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[#2C362D] bg-white px-3 py-1.5 rounded-full border border-[#5C715E]/20 shadow-2xs">
-            <ArrowUpDown className="w-3.5 h-3.5 text-[#5C715E]" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent focus:outline-none text-xs font-medium cursor-pointer"
-            >
-              <option value="featured">Destacados</option>
-              <option value="price-asc">Precio: Menor a Mayor</option>
-              <option value="price-desc">Precio: Mayor a Menor</option>
-              <option value="name">Nombre: A - Z</option>
-            </select>
+          <div className="flex items-center gap-2 text-xs text-[#2C362D]">
+            <span className="text-[#2C362D]/60 hidden sm:inline">Ordenar:</span>
+            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-[#5C715E]/20 shadow-2xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-[#5C715E]" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-transparent focus:outline-none text-xs font-medium cursor-pointer"
+              >
+                <option value="featured">Destacados</option>
+                <option value="price-asc">Precio: Menor a Mayor</option>
+                <option value="price-desc">Precio: Mayor a Menor</option>
+                <option value="name">Nombre: A - Z</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Occasion Context Message Banner (Especially subtle & formal for Condolences) */}
-      {activeCategory === 'Condolencias & Homenaje' && (
-        <div className="mt-4 p-4 rounded-2xl bg-white border border-[#5C715E]/20 shadow-xs flex items-start sm:items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#5C715E]/10 text-[#5C715E]">
-            <Bird className="w-5 h-5" />
+      {/* Active Category Description Banner (Only shown when a specific collection is filtered) */}
+      {currentCategoryInfo && (
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-white border border-[#5C715E]/20 shadow-xs flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="p-2.5 rounded-2xl bg-[#5C715E]/10 text-[#5C715E] shrink-0">
+              <currentCategoryInfo.icon className="w-5 h-5 text-[#5C715E]" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-serif-boutique font-bold text-[#2C362D]">
+                  Colección: {currentCategoryInfo.label}
+                </h3>
+                <span className="text-[11px] px-2 py-0.2 rounded-full bg-[#D49A89]/20 text-[#2C362D] font-semibold">
+                  {currentCategoryInfo.tagline}
+                </span>
+              </div>
+              <p className="text-xs text-[#2C362D]/75 mt-0.5 line-clamp-2">
+                {currentCategoryInfo.description}
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h4 className="text-xs font-bold text-[#2C362D] uppercase tracking-wider">
-              Condolencias y Homenaje Floral en Cusco
-            </h4>
-            <p className="text-xs text-[#2C362D]/75 mt-0.5">
-              Expresamos su pésame con la mayor solemnidad y respeto. Todos nuestros arreglos incluyen cinta dedicatoria formal caligrafiada y coordinación de entrega delicada en velatorios, templos o domicilios de Cusco.
-            </p>
-          </div>
+          <button
+            onClick={() => onSelectCategory('Todos')}
+            className="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-[#5C715E] hover:text-[#2C362D] px-3 py-1.5 rounded-full border border-[#5C715E]/20 hover:bg-[#5C715E]/10 transition-colors shrink-0 cursor-pointer"
+          >
+            Ver todas
+          </button>
         </div>
       )}
 
-      {activeCategory === 'Graduaciones' && (
-        <div className="mt-4 p-4 rounded-2xl bg-white border border-[#5C715E]/20 shadow-xs flex items-start sm:items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#D49A89]/20 text-[#2C362D]">
-            <GraduationCap className="w-5 h-5 text-[#5C715E]" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-xs font-bold text-[#2C362D] uppercase tracking-wider">
-              Graduaciones & Colaciones Académicas
-            </h4>
-            <p className="text-xs text-[#2C362D]/75 mt-0.5">
-              Ramos emblemáticos con girasoles andinos resplandecientes, lirios blancos y cintas doradas de honor, perfectos para sesiones de fotos de toga y celebraciones en Cusco.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Active Search/Filter summary badge */}
-      {(searchQuery || activeCategory !== 'Todos') && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#5C715E]">
-          <span>Filtro activo:</span>
-          {activeCategory !== 'Todos' && (
-            <span className="bg-[#5C715E]/10 px-2.5 py-0.5 rounded-full font-semibold">
-              {activeCategory}
-            </span>
-          )}
-          {searchQuery && (
-            <span className="bg-[#D49A89]/20 text-[#2C362D] px-2.5 py-0.5 rounded-full font-medium">
-              Búsqueda: "{searchQuery}"
-            </span>
-          )}
+      {/* Active Search Notification */}
+      {searchQuery && (
+        <div className="mb-6 flex items-center gap-2 text-xs text-[#5C715E]">
+          <span className="bg-gray-100 text-[#2C362D] px-2.5 py-1 rounded-full font-medium">
+            Búsqueda activa: "{searchQuery}"
+          </span>
           <button
             onClick={onResetFilters}
-            className="inline-flex items-center gap-1 text-xs underline hover:text-[#B87C6B] font-medium ml-2"
+            className="inline-flex items-center gap-1 text-xs underline hover:text-[#B87C6B] font-medium ml-2 cursor-pointer"
           >
             <RefreshCw className="w-3 h-3" />
-            Mostrar todo el catálogo
+            Limpiar búsqueda
           </button>
         </div>
       )}
 
       {/* Products Grid */}
       {filteredProducts.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
               onAddToCart={onAddToCart}
               onOpenDetail={onOpenDetail}
+              whatsappNumber={whatsappNumber}
             />
           ))}
         </div>
       ) : (
-        <div className="mt-16 text-center py-16 bg-white rounded-3xl border border-[#5C715E]/15 shadow-sm max-w-md mx-auto p-8">
+        <div className="mt-12 text-center py-16 bg-white rounded-3xl border border-[#5C715E]/15 shadow-sm max-w-md mx-auto p-8">
           <div className="w-14 h-14 mx-auto rounded-full bg-[#5C715E]/10 flex items-center justify-center text-[#5C715E] mb-3">
             <Sparkles className="w-6 h-6" />
           </div>
@@ -285,11 +325,11 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
             No encontramos arreglos con este filtro
           </h3>
           <p className="mt-1.5 text-xs text-[#2C362D]/70">
-            Intenta con otra ocasión o revisa nuestras creaciones disponibles.
+            Intenta seleccionando otra colección o explorando todo nuestro catálogo floral.
           </p>
           <button
             onClick={onResetFilters}
-            className="mt-4 px-5 py-2 rounded-full bg-[#5C715E] text-white text-xs font-semibold hover:bg-[#4a5c4c] transition-colors"
+            className="mt-4 px-5 py-2 rounded-full bg-[#5C715E] text-white text-xs font-semibold hover:bg-[#4a5c4c] transition-colors cursor-pointer"
           >
             Ver Catálogo Completo
           </button>

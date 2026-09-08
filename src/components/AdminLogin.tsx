@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Mail, Eye, EyeOff, Sparkles, ArrowLeft, KeyRound, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, Eye, EyeOff, ArrowLeft, KeyRound, AlertCircle } from 'lucide-react';
 import { RosanferLogo } from './RosanferLogo';
 import { AdminUser, AdminSession } from '../types';
 import { safeGetStorage, safeSetStorage } from '../utils/driveUtils';
@@ -60,12 +60,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
       }
       setIsLoading(false);
     }, 400);
-  };
-
-  const handleQuickLogin = () => {
-    setIdentifier(DEFAULT_ADMIN_EMAIL);
-    setPassword(customPassword);
-    setErrorMsg('');
   };
 
   return (
@@ -178,32 +172,19 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
             </button>
           </form>
 
-          {/* Quick Demo Access pill */}
+          {/* Security Notice */}
           <div className="mt-6 pt-5 border-t border-[#5C715E]/15">
-            <div className="bg-white p-3.5 rounded-2xl border border-[#5C715E]/15 text-center">
-              <p className="text-[11px] font-semibold text-[#2C362D] mb-1.5 flex items-center justify-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#D49A89]" />
-                <span>Credenciales de Administrador</span>
+            <div className="bg-[#5C715E]/5 p-3 rounded-2xl border border-[#5C715E]/15 text-center">
+              <p className="text-[11px] text-[#2C362D]/80 leading-relaxed">
+                Portal protegido para el equipo de <strong>Rosanfer Florería</strong>. Si olvidaste tus credenciales de acceso, comunícate con la administración de la boutique.
               </p>
-              <p className="text-[11px] text-gray-600 font-mono bg-gray-50 py-1 px-2 rounded-lg border border-gray-100 inline-block mb-2">
-                Usuario: <strong>admin</strong> | Clave: <strong>{customPassword}</strong>
-              </p>
-              <div>
-                <button
-                  type="button"
-                  onClick={handleQuickLogin}
-                  className="text-xs font-semibold text-[#5C715E] hover:text-[#4a5c4c] hover:underline"
-                >
-                  Rellenar datos automáticamente
-                </button>
-              </div>
             </div>
 
             <div className="mt-4 text-center">
               <button
                 type="button"
                 onClick={onCancel}
-                className="text-xs text-gray-500 hover:text-[#2C362D] hover:underline"
+                className="text-xs text-gray-500 hover:text-[#2C362D] hover:underline cursor-pointer"
               >
                 Volver a la tienda pública
               </button>

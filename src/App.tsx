@@ -20,11 +20,17 @@ import { Footer } from './components/Footer';
 import { FloatingActions } from './components/FloatingActions';
 
 export default function App() {
-  // State with LocalStorage fallbacks and smart upgrade for new Cusco collections
+  // State with LocalStorage fallbacks and smart upgrade for new collections
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = safeGetStorage<Product[]>('rosanfer_products', INITIAL_PRODUCTS);
-    if (Array.isArray(saved) && saved.length >= INITIAL_PRODUCTS.length && saved.some(p => p.category === 'Condolencias & Homenaje')) {
-      return saved;
+    if (Array.isArray(saved) && saved.length > 0) {
+      const hasNewCategories = saved.some((p) =>
+        ['Festivos', 'Latidos en Flor', 'Graduación', 'Set Nupcial "Sí Acepto"', 'Amor Eterno', 'Primavera Para Ti'].includes(p.category)
+      );
+      if (hasNewCategories) {
+        return saved;
+      }
+      return INITIAL_PRODUCTS;
     }
     return INITIAL_PRODUCTS;
   });
@@ -48,7 +54,15 @@ export default function App() {
   const [settings, setSettings] = useState<BoutiqueSettings>(() => {
     const saved = safeGetStorage<BoutiqueSettings>('rosanfer_settings', INITIAL_SETTINGS);
     if (saved && saved.storeCity && saved.storeCity.includes('Cusco')) {
-      return saved;
+      const merged = { ...INITIAL_SETTINGS, ...saved };
+      // Ensure the official contact number is 989415220 if previous session had old placeholder
+      if (merged.whatsappNumber === '51984234567') {
+        merged.whatsappNumber = '51989415220';
+      }
+      if (merged.yapeNumber === '984 234 567') {
+        merged.yapeNumber = '989 415 220';
+      }
+      return merged;
     }
     return INITIAL_SETTINGS;
   });
@@ -214,12 +228,16 @@ export default function App() {
   // Catalog operations
   const handleAddProduct = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
+    setActiveCategory('Todos');
+    setSearchQuery('');
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
     );
+    setActiveCategory('Todos');
+    setSearchQuery('');
   };
 
   const handleDeleteProduct = (productId: string) => {
@@ -261,6 +279,7 @@ export default function App() {
           }}
           onAddToCart={handleAddToCart}
           onOpenDetail={(prod) => setSelectedProductDetail(prod)}
+          whatsappNumber={settings.whatsappNumber}
         />
 
         {/* Brand Story & Merchandise Showcase */}
@@ -293,6 +312,10 @@ export default function App() {
         onOrderCreated={handleOrderCreated}
         whatsappNumber={settings.whatsappNumber}
         defaultDeliveryFee={settings.defaultDeliveryFee}
+        storeAddress={settings.storeAddress}
+        storeCity={settings.storeCity}
+        promoConfig={promoConfig}
+        settings={settings}
       />
 
       {/* Product Detail Modal */}
@@ -314,7 +337,11 @@ export default function App() {
       {/* Intranet & Centralized Admin Portal */}
       <AdminPortal
         isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
+        onClose={() => {
+          setIsAdminOpen(false);
+          setActiveCategory('Todos');
+          setSearchQuery('');
+        }}
         orders={orders}
         onUpdateOrderStatus={handleUpdateOrderStatus}
         products={products}

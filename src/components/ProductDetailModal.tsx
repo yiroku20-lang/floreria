@@ -57,7 +57,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left Column: Image */}
-          <div className="relative min-h-[300px] md:min-h-[460px] bg-[#EFECE6] overflow-hidden">
+          <div className="relative aspect-square md:aspect-auto md:min-h-[460px] bg-[#EFECE6] overflow-hidden">
             <img
               src={transformDriveUrl(product.imageUrl)}
               alt={product.name}
@@ -66,9 +66,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=1000&q=80';
               }}
               style={
-                product.framing && !product.imageUrl.startsWith('data:image')
+                product.framing
                   ? {
-                      transform: `scale(${product.framing.zoom}) translate(${product.framing.x}%, ${product.framing.y}%) rotate(${product.framing.rotation || 0}deg)`,
+                      objectPosition: `${50 + (product.framing.x || 0)}% ${50 + (product.framing.y || 0)}%`,
+                      transform: `scale(${Math.max(1, product.framing.zoom || 1)}) rotate(${product.framing.rotation || 0}deg)`,
                       transformOrigin: 'center center',
                     }
                   : undefined
@@ -91,8 +92,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           {/* Right Column: Details */}
           <div className="p-6 sm:p-8 flex flex-col justify-between max-h-[85vh] overflow-y-auto">
             <div>
-              <div className="flex items-center justify-between text-xs text-[#5C715E] font-semibold tracking-wider uppercase">
-                <span>{product.category}</span>
+              <div className="flex items-center justify-between text-xs text-[#5C715E] font-semibold tracking-wider uppercase gap-2">
+                <div className="flex items-center gap-2">
+                  <span>{product.category}</span>
+                  {product.subEdition && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#5C715E]/10 text-[#5C715E] font-bold normal-case">
+                      {product.subEdition}
+                    </span>
+                  )}
+                </div>
                 {product.stemCount && <span>{product.stemCount}</span>}
               </div>
 

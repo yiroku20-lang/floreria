@@ -53,8 +53,10 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
   // Product Form state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Product['category']>('Tulipanes');
-  const [price, setPrice] = useState<number>(120);
+  const [category, setCategory] = useState<Product['category']>('Festivos');
+  const [subEdition, setSubEdition] = useState('');
+  const [occasion, setOccasion] = useState<Product['occasion']>('General');
+  const [price, setPrice] = useState<number>(140);
   const [originalPrice, setOriginalPrice] = useState<number | undefined>(undefined);
   const [stock, setStock] = useState<number>(15);
   const [imageUrl, setImageUrl] = useState('');
@@ -79,7 +81,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
   const [promoDriveUrl, setPromoDriveUrl] = useState(promoConfig.driveImageUrl);
   const [promoCtaText, setPromoCtaText] = useState(promoConfig.ctaText);
   const [promoEnabled, setPromoEnabled] = useState(promoConfig.isEnabled);
-  const [promoCategory, setPromoCategory] = useState(promoConfig.categoryRedirect || 'Tulipanes');
+  const [promoCategory, setPromoCategory] = useState(promoConfig.categoryRedirect || 'Primavera Para Ti');
   const [promoFeedback, setPromoFeedback] = useState('');
   const [promoImageError, setPromoImageError] = useState(false);
   const [isPromoFramingOpen, setIsPromoFramingOpen] = useState(false);
@@ -96,6 +98,8 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
     setEditingId(product.id);
     setName(product.name);
     setCategory(product.category);
+    setSubEdition(product.subEdition || '');
+    setOccasion(product.occasion || 'General');
     setPrice(product.price);
     setOriginalPrice(product.originalPrice);
     setStock(product.stock);
@@ -118,8 +122,10 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
   const handleCancelEdit = () => {
     setEditingId(null);
     setName('');
-    setCategory('Tulipanes');
-    setPrice(120);
+    setCategory('Festivos');
+    setSubEdition('');
+    setOccasion('General');
+    setPrice(140);
     setOriginalPrice(undefined);
     setStock(15);
     setImageUrl('');
@@ -144,19 +150,25 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
       : transformDriveUrl(imageUrl);
 
     if (editingId) {
+      const existing = products.find((p) => p.id === editingId);
       const updated: Product = {
+        ...existing,
         id: editingId,
         name: name.trim(),
         category,
+        subEdition: subEdition.trim() || undefined,
+        occasion: occasion || existing?.occasion || (category as any),
         price,
         originalPrice: originalPrice && originalPrice > price ? originalPrice : undefined,
         stock,
         imageUrl: transformedUrl,
-        originalImageUrl: originalImageUrl,
-        framing: productFraming,
+        originalImageUrl: originalImageUrl || existing?.originalImageUrl,
+        framing: productFraming || existing?.framing,
         description: description.trim(),
         stemCount: stemCount.trim() || undefined,
         tags: [tagSelection as any],
+        featured: existing?.featured ?? true,
+        careTips: existing?.careTips || [],
       };
       onUpdateProduct(updated);
       setProductFeedback(`¡Producto "${name}" actualizado con éxito en el catálogo!`);
@@ -165,6 +177,8 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
         id: `prod-${Date.now()}`,
         name: name.trim(),
         category,
+        subEdition: subEdition.trim() || undefined,
+        occasion: occasion || (category as any) || 'General',
         price,
         originalPrice: originalPrice && originalPrice > price ? originalPrice : undefined,
         stock,
@@ -175,6 +189,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
         stemCount: stemCount.trim() || undefined,
         tags: [tagSelection as any],
         featured: true,
+        careTips: ['Colocar en agua fresca', 'Cortar tallos en diagonal 1cm cada 2 días', 'Mantener en lugar fresco sin sol directo'],
       };
       onAddProduct(newProd);
       setProductFeedback(`¡Nuevo arreglo "${name}" publicado con éxito!`);
@@ -305,28 +320,126 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-[#2C362D] mb-1">Categoría *</label>
+                      <label className="block text-xs font-bold text-[#2C362D] mb-1">
+                        Tipo de Arreglo / Colección *
+                      </label>
                       <select
                         value={category}
-                        onChange={(e) => setCategory(e.target.value as any)}
-                        className="w-full px-3 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                        onChange={(e) => {
+                          const val = e.target.value as Product['category'];
+                          setCategory(val);
+                        }}
+                        className="w-full px-3 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E] font-medium"
                       >
-                        <optgroup label="Ocasiones Cusco">
-                          <option value="Citas & Romance">Citas & Romance</option>
-                          <option value="Graduaciones">Graduaciones</option>
-                          <option value="Cumpleaños">Cumpleaños</option>
-                          <option value="Condolencias & Homenaje">Condolencias & Homenaje</option>
-                        </optgroup>
-                        <optgroup label="Colecciones & Variedades">
-                          <option value="Tulipanes">Tulipanes</option>
-                          <option value="Rosas de Lujo">Rosas de Lujo</option>
-                          <option value="Ramos de Autor">Ramos de Autor</option>
-                          <option value="Flores Preservadas">Flores Preservadas</option>
-                          <option value="Merchandising & Regalos">Merchandising & Regalos</option>
-                        </optgroup>
+                        <option value="Festivos">Festivos (Cumpleaños, Quinceañero, etc.)</option>
+                        <option value="Latidos en Flor">Latidos en Flor (Romance & Amor)</option>
+                        <option value="Graduación">Graduación (Colaciones & Títulos)</option>
+                        <option value="Set Nupcial &quot;Sí Acepto&quot;">Set Nupcial &quot;Sí Acepto&quot; (Bodas)</option>
+                        <option value="Amor Eterno">Amor Eterno (Flores Preservadas)</option>
+                        <option value="Primavera Para Ti">Primavera Para Ti (Tulipanes & Frescas)</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#2C362D] mb-1">
+                        Versión Especial / Edición
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Cumpleaños, Quinceañero..."
+                        value={subEdition}
+                        onChange={(e) => setSubEdition(e.target.value)}
+                        className="w-full px-3 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                      />
+                      {/* Suggestions pills based on current category */}
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {category === 'Festivos' && (
+                          <>
+                            {['Cumpleaños', 'Quinceañero', 'Fiesta & Brindis'].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setSubEdition(tag)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 hover:bg-amber-100 cursor-pointer"
+                              >
+                                +{tag}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {category === 'Latidos en Flor' && (
+                          <>
+                            {['Romance Profundo', 'Declaración de Amor', 'Primera Cita'].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setSubEdition(tag)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 hover:bg-rose-100 cursor-pointer"
+                              >
+                                +{tag}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {category === 'Graduación' && (
+                          <>
+                            {['Bachiller & Título', 'Toga & Birrete', 'Promoción UNSAAC'].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setSubEdition(tag)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 hover:bg-blue-100 cursor-pointer"
+                              >
+                                +{tag}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {category === 'Set Nupcial "Sí Acepto"' && (
+                          <>
+                            {['Ramo de Novia', 'Boda Civil', 'Dúo Nupcial + Boutonnière'].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setSubEdition(tag)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 hover:bg-emerald-100 cursor-pointer"
+                              >
+                                +{tag}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {category === 'Amor Eterno' && (
+                          <>
+                            {['Cúpula de Cristal', 'Cofre Joyero', 'Dúo Perpetuo'].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setSubEdition(tag)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-800 hover:bg-purple-100 cursor-pointer"
+                              >
+                                +{tag}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {category === 'Primavera Para Ti' && (
+                          <>
+                            {['Tulipanes Holandeses', 'Mix Silvestre', 'Dulce Amanecer'].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setSubEdition(tag)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-green-50 text-green-800 hover:bg-green-100 cursor-pointer"
+                              >
+                                +{tag}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -565,14 +678,15 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                           src={transformDriveUrl(imageUrl)}
                           alt="Vista previa del producto"
                           style={
-                            productFraming && !imageUrl.startsWith('data:image')
+                            productFraming
                               ? {
-                                  transform: `scale(${productFraming.zoom}) translate(${productFraming.x}%, ${productFraming.y}%) rotate(${productFraming.rotation || 0}deg)`,
+                                  objectPosition: `${50 + (productFraming.x || 0)}% ${50 + (productFraming.y || 0)}%`,
+                                  transform: `scale(${Math.max(1, productFraming.zoom || 1)}) rotate(${productFraming.rotation || 0}deg)`,
                                   transformOrigin: 'center center',
                                 }
                               : undefined
                           }
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-300"
                           onError={() => setImageLoadError(true)}
                           onLoad={() => setImageLoadError(false)}
                         />
@@ -696,14 +810,13 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                   onChange={(e) => setTableCategory(e.target.value)}
                   className="px-2.5 py-1.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6]"
                 >
-                  <option value="all">Todas las categorías</option>
-                  <option value="Citas & Romance">Citas & Romance</option>
-                  <option value="Graduaciones">Graduaciones</option>
-                  <option value="Cumpleaños">Cumpleaños</option>
-                  <option value="Condolencias & Homenaje">Condolencias</option>
-                  <option value="Tulipanes">Tulipanes</option>
-                  <option value="Rosas de Lujo">Rosas de Lujo</option>
-                  <option value="Ramos de Autor">Ramos de Autor</option>
+                  <option value="all">Todas las colecciones</option>
+                  <option value="Festivos">Festivos</option>
+                  <option value="Latidos en Flor">Latidos en Flor</option>
+                  <option value="Graduación">Graduación</option>
+                  <option value="Set Nupcial &quot;Sí Acepto&quot;">Set Nupcial &quot;Sí Acepto&quot;</option>
+                  <option value="Amor Eterno">Amor Eterno</option>
+                  <option value="Primavera Para Ti">Primavera Para Ti</option>
                 </select>
               </div>
             </div>
@@ -736,16 +849,29 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                         }`}
                       >
                         <td className="py-2.5 px-4">
-                          <img
-                            src={transformDriveUrl(prod.imageUrl)}
-                            alt={prod.name}
-                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 shadow-xs cursor-pointer hover:opacity-80"
+                          <div
+                            className="w-12 h-12 rounded-xl overflow-hidden relative border border-gray-200 shadow-xs cursor-pointer hover:opacity-80 aspect-square bg-[#F4F1EC] shrink-0"
                             onClick={() => setZoomImageUrl(transformDriveUrl(prod.imageUrl))}
                             title="Haz clic para ver imagen ampliada"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = BOUTIQUE_FALLBACK_IMAGE;
-                            }}
-                          />
+                          >
+                            <img
+                              src={transformDriveUrl(prod.imageUrl)}
+                              alt={prod.name}
+                              style={
+                                prod.framing
+                                  ? {
+                                      objectPosition: `${50 + (prod.framing.x || 0)}% ${50 + (prod.framing.y || 0)}%`,
+                                      transform: `scale(${Math.max(1, prod.framing.zoom || 1)}) rotate(${prod.framing.rotation || 0}deg)`,
+                                      transformOrigin: 'center center',
+                                    }
+                                  : undefined
+                              }
+                              className="w-full h-full object-cover object-center"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = BOUTIQUE_FALLBACK_IMAGE;
+                              }}
+                            />
+                          </div>
                         </td>
                         <td className="py-2.5 px-4 font-semibold text-[#2C362D]">
                           <div className="flex items-center gap-1.5">
@@ -762,7 +888,16 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                             </span>
                           )}
                         </td>
-                        <td className="py-2.5 px-4 text-gray-600">{prod.category}</td>
+                        <td className="py-2.5 px-4 text-gray-600">
+                          <div>
+                            <span className="font-medium text-[#2C362D]">{prod.category}</span>
+                            {prod.subEdition && (
+                              <span className="inline-block ml-1 text-[10px] px-1.5 py-0.2 rounded bg-[#5C715E]/10 text-[#5C715E] font-semibold">
+                                {prod.subEdition}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="py-2.5 px-4 font-bold text-[#2C362D]">
                           {formatCurrency(prod.price)}
                           {prod.originalPrice && (
@@ -938,19 +1073,12 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                       onChange={(e) => setPromoCategory(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                     >
-                      <optgroup label="Ocasiones Cusco">
-                        <option value="Citas & Romance">Citas & Romance</option>
-                        <option value="Graduaciones">Graduaciones</option>
-                        <option value="Cumpleaños">Cumpleaños</option>
-                        <option value="Condolencias & Homenaje">Condolencias & Homenaje</option>
-                      </optgroup>
-                      <optgroup label="Colecciones">
-                        <option value="Tulipanes">Tulipanes</option>
-                        <option value="Rosas de Lujo">Rosas de Lujo</option>
-                        <option value="Ramos de Autor">Ramos de Autor</option>
-                        <option value="Flores Preservadas">Flores Preservadas</option>
-                        <option value="Merchandising & Regalos">Merchandising & Regalos</option>
-                      </optgroup>
+                      <option value="Festivos">Festivos (Cumpleaños, Quinceañeros)</option>
+                      <option value="Latidos en Flor">Latidos en Flor (Romance)</option>
+                      <option value="Graduación">Graduación (Colaciones)</option>
+                      <option value="Set Nupcial &quot;Sí Acepto&quot;">Set Nupcial &quot;Sí Acepto&quot; (Bodas)</option>
+                      <option value="Amor Eterno">Amor Eterno (Flores Preservadas)</option>
+                      <option value="Primavera Para Ti">Primavera Para Ti (Tulipanes & Frescas)</option>
                     </select>
                   </div>
 
@@ -1182,15 +1310,41 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
         imageUrl={originalImageUrl || imageUrl}
         productName={name || 'Arreglo Floral'}
         initialFraming={productFraming}
-        onSaveCropped={(croppedDataUrl, origUrl, framingData) => {
-          setImageUrl(croppedDataUrl);
+        onSaveCropped={(savedUrl, origUrl, framingData) => {
+          // Never replace with giant Base64 if clean web URL exists
+          const cleanUrl =
+            origUrl && !origUrl.startsWith('data:image')
+              ? origUrl
+              : savedUrl && !savedUrl.startsWith('data:image')
+              ? savedUrl
+              : imageUrl && !imageUrl.startsWith('data:image')
+              ? imageUrl
+              : savedUrl;
+
+          setImageUrl(cleanUrl);
           if (origUrl) setOriginalImageUrl(origUrl);
           if (framingData) setProductFraming(framingData);
           setImageLoadError(false);
+
+          // If editing an existing product, sync the updated framing immediately
+          if (editingId) {
+            const existing = products.find((p) => p.id === editingId);
+            if (existing) {
+              onUpdateProduct({
+                ...existing,
+                imageUrl: cleanUrl,
+                originalImageUrl: origUrl || existing.originalImageUrl,
+                framing: framingData,
+              });
+            }
+          }
+
           setProductFeedback(
-            '¡Encuadre 1:1 guardado! La imagen tiene ahora la proporción cuadrada idéntica a la tienda.'
+            editingId
+              ? '¡Encuadre aplicado! Haz clic en "Guardar Cambios del Arreglo" para publicar en el catálogo.'
+              : '¡Encuadre aplicado! Haz clic en "Guardar Cambios" para publicar en el catálogo.'
           );
-          setTimeout(() => setProductFeedback(''), 4500);
+          setTimeout(() => setProductFeedback(''), 6000);
         }}
       />
 
@@ -1200,12 +1354,23 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
         onClose={() => setIsPromoFramingOpen(false)}
         imageUrl={originalPromoUrl || promoDriveUrl}
         productName={promoTitle || 'Popup Promocional'}
-        onSaveCropped={(croppedDataUrl, origUrl) => {
-          setPromoDriveUrl(croppedDataUrl);
+        onSaveCropped={(savedUrl, origUrl) => {
+          const cleanUrl =
+            origUrl && !origUrl.startsWith('data:image')
+              ? origUrl
+              : savedUrl && !savedUrl.startsWith('data:image')
+              ? savedUrl
+              : promoDriveUrl && !promoDriveUrl.startsWith('data:image')
+              ? promoDriveUrl
+              : savedUrl;
+
+          setPromoDriveUrl(cleanUrl);
           if (origUrl) setOriginalPromoUrl(origUrl);
           setPromoImageError(false);
-          setPromoFeedback('¡Imagen del popup encuadrada con éxito!');
-          setTimeout(() => setPromoFeedback(''), 4000);
+          setPromoFeedback(
+            '¡Encuadre aplicado! Haz clic en "Guardar Configuración de Promoción" para publicar los cambios.'
+          );
+          setTimeout(() => setPromoFeedback(''), 5000);
         }}
       />
     </div>

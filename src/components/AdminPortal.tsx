@@ -16,6 +16,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  QrCode,
+  Building2,
+  Wallet,
 } from 'lucide-react';
 import {
   Product,
@@ -88,6 +91,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [storeAddress, setStoreAddress] = useState(settings.storeAddress);
   const [storeHours, setStoreHours] = useState(settings.openingHours);
   const [deliveryFee, setDeliveryFee] = useState(settings.defaultDeliveryFee);
+  const [yapeNumber, setYapeNumber] = useState(settings.yapeNumber || '989 415 220');
+  const [yapeHolder, setYapeHolder] = useState(settings.yapeHolder || 'Rosanfer Florería / Andrea V.');
+  const [bcpAccount, setBcpAccount] = useState(settings.bcpAccount || '215-98765432-0-12');
+  const [interbankAccount, setInterbankAccount] = useState(settings.interbankAccount || '003-892-0134567890-44');
   const [settingsFeedback, setSettingsFeedback] = useState('');
 
   // Password change state
@@ -124,9 +131,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       storeAddress: storeAddress.trim(),
       openingHours: storeHours.trim(),
       defaultDeliveryFee: deliveryFee,
+      yapeNumber: yapeNumber.trim(),
+      yapeHolder: yapeHolder.trim(),
+      bcpAccount: bcpAccount.trim(),
+      interbankAccount: interbankAccount.trim(),
     });
-    setSettingsFeedback('¡Configuración de boutique actualizada con éxito!');
-    setTimeout(() => setSettingsFeedback(''), 3000);
+    setSettingsFeedback('¡Configuración de boutique y cuentas de cobro actualizadas con éxito!');
+    setTimeout(() => setSettingsFeedback(''), 3500);
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -374,6 +385,78 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       onChange={(e) => setDeliveryFee(parseFloat(e.target.value) || 0)}
                       className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                     />
+                  </div>
+                </div>
+
+                {/* Banking & Digital Wallets Section */}
+                <div className="pt-5 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wallet className="w-4 h-4 text-[#5C715E]" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2C362D]">
+                      Datos de Cobro Bancario y Billeteras Digitales (Yape / Plin / Transferencias)
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mb-4">
+                    Estos datos se mostrarán a tus clientes en el resumen de compra y confirmación para que abonen por Yape, Plin o cuenta bancaria.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-[#2C362D] mb-1 flex items-center gap-1.5">
+                        <QrCode className="w-3.5 h-3.5 text-[#5C715E]" />
+                        <span>Número Yape / Plin *</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej: 989 415 220"
+                        value={yapeNumber}
+                        onChange={(e) => setYapeNumber(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#2C362D] mb-1">
+                        Nombre del Titular de la Cuenta / Billetera *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej: Rosanfer Florería / Andrea V."
+                        value={yapeHolder}
+                        onChange={(e) => setYapeHolder(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#2C362D] mb-1 flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-[#5C715E]" />
+                        <span>Número de Cuenta BCP (opcional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej: 215-98765432-0-12"
+                        value={bcpAccount}
+                        onChange={(e) => setBcpAccount(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#2C362D] mb-1 flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-[#5C715E]" />
+                        <span>Número de Cuenta Interbank (opcional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej: 003-892-0134567890-44"
+                        value={interbankAccount}
+                        onChange={(e) => setInterbankAccount(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                      />
+                    </div>
                   </div>
                 </div>
 
