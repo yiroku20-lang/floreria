@@ -92,7 +92,6 @@ export interface PromoConfig {
   title: string;
   subtitle: string;
   badge: string;
-  couponCode?: string;
   driveImageUrl: string;
   ctaText: string;
   categoryRedirect?: string;
@@ -123,3 +122,23 @@ export interface AdminSession {
   token: string;
   loginTime: string;
 }
+
+export interface SocialVideoPost {
+  id: string;
+  platform: 'tiktok' | 'instagram' | 'youtube';
+  title: string;
+  description: string;
+  url: string;
+  videoId?: string;
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  authorHandle: string;
+  authorName?: string;
+  likesCount?: string;
+  viewsCount?: string;
+  commentsCount?: string;
+  isActive: boolean;
+  isPinned?: boolean;
+  order: number;
+}
+

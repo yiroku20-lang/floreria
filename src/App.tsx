@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Order, InventoryMovement, PromoConfig, BoutiqueSettings, CartItem, OrderStatus } from './types';
+import { Product, Order, InventoryMovement, PromoConfig, BoutiqueSettings, CartItem, OrderStatus, SocialVideoPost } from './types';
 import {
   INITIAL_PRODUCTS,
   INITIAL_ORDERS,
   INITIAL_MOVEMENTS,
   INITIAL_PROMO,
   INITIAL_SETTINGS,
+  INITIAL_SOCIAL_POSTS,
 } from './data/initialData';
 import { safeGetStorage, safeSetStorage } from './utils/driveUtils';
 import { Navbar } from './components/Navbar';
@@ -15,6 +16,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { CartDrawer } from './components/CartDrawer';
 import { PromoModal } from './components/PromoModal';
 import { BoutiqueStorySection } from './components/BoutiqueStorySection';
+import { SocialShowcaseSection } from './components/SocialShowcaseSection';
 import { AdminPortal } from './components/AdminPortal';
 import { Footer } from './components/Footer';
 import { FloatingActions } from './components/FloatingActions';
@@ -47,9 +49,13 @@ export default function App() {
     safeGetStorage('rosanfer_movements', INITIAL_MOVEMENTS)
   );
 
-  const [promoConfig, setPromoConfig] = useState<PromoConfig>(() =>
-    safeGetStorage('rosanfer_promo', INITIAL_PROMO)
-  );
+  const [promoConfig, setPromoConfig] = useState<PromoConfig>(() => {
+    const saved = safeGetStorage<PromoConfig>('rosanfer_promo', INITIAL_PROMO);
+    if (saved && (saved.title.includes('Bienvenidos') || !saved.driveImageUrl.includes('photo-1597848212624'))) {
+      return INITIAL_PROMO;
+    }
+    return saved || INITIAL_PROMO;
+  });
 
   const [settings, setSettings] = useState<BoutiqueSettings>(() => {
     const saved = safeGetStorage<BoutiqueSettings>('rosanfer_settings', INITIAL_SETTINGS);
@@ -66,6 +72,10 @@ export default function App() {
     }
     return INITIAL_SETTINGS;
   });
+
+  const [socialPosts, setSocialPosts] = useState<SocialVideoPost[]>(() =>
+    safeGetStorage('rosanfer_social_posts', INITIAL_SOCIAL_POSTS)
+  );
 
   const [cart, setCart] = useState<CartItem[]>(() =>
     safeGetStorage('rosanfer_cart', [])
@@ -99,6 +109,10 @@ export default function App() {
   useEffect(() => {
     safeSetStorage('rosanfer_settings', settings);
   }, [settings]);
+
+  useEffect(() => {
+    safeSetStorage('rosanfer_social_posts', socialPosts);
+  }, [socialPosts]);
 
   useEffect(() => {
     safeSetStorage('rosanfer_cart', cart);
@@ -284,6 +298,9 @@ export default function App() {
 
         {/* Brand Story & Merchandise Showcase */}
         <BoutiqueStorySection onSelectCategory={setActiveCategory} />
+
+        {/* Social Media & TikTok Videos Showcase */}
+        <SocialShowcaseSection posts={socialPosts} />
       </main>
 
       {/* Footer */}
@@ -354,6 +371,8 @@ export default function App() {
         promoConfig={promoConfig}
         onUpdatePromoConfig={setPromoConfig}
         onTriggerPromoPreview={() => setForceOpenPromo(true)}
+        socialPosts={socialPosts}
+        onUpdateSocialPosts={setSocialPosts}
         settings={settings}
         onUpdateSettings={setSettings}
       />

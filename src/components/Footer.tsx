@@ -112,6 +112,30 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
               <Phone className="w-3.5 h-3.5" />
               <span>Chatear por WhatsApp</span>
             </a>
+
+            {/* Social handles in footer */}
+            <div className="pt-2 flex items-center gap-2">
+              <a
+                href="https://www.tiktok.com/@rosanfer14"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#FBF9F6] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                title="TikTok Rosanfer"
+              >
+                <span>TikTok</span>
+                <span className="text-[10px] text-cyan-300 font-mono">@rosanfer14</span>
+              </a>
+
+              <a
+                href="https://www.instagram.com/rosanfer.floreria"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#FBF9F6] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                title="Instagram Rosanfer"
+              >
+                <span>Instagram</span>
+              </a>
+            </div>
           </div>
         </div>
 

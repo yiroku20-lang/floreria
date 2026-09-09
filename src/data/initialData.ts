@@ -1,4 +1,4 @@
-import { Product, Order, InventoryMovement, PromoConfig, BoutiqueSettings } from '../types';
+import { Product, Order, InventoryMovement, PromoConfig, BoutiqueSettings, SocialVideoPost } from '../types';
 
 export const INITIAL_PRODUCTS: Product[] = [
   // 1. FESTIVOS
@@ -477,13 +477,12 @@ export const INITIAL_MOVEMENTS: InventoryMovement[] = [
 
 export const INITIAL_PROMO: PromoConfig = {
   isEnabled: true,
-  title: 'El amor viene en forma de Tulipán',
-  subtitle: 'Descubre nuestra exclusiva colección de tulipanes holandeses. Elige tus colores favoritos con 15% OFF en tu primer pedido.',
-  badge: 'Temporada Floral 2026',
-  couponCode: 'TULIPAN15',
-  driveImageUrl: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=1000&q=80',
-  ctaText: 'Ver Colección Primavera',
-  categoryRedirect: 'Primavera Para Ti',
+  title: '¡Llegó la Temporada de Flores Amarillas!',
+  subtitle: 'Celebra este mes de septiembre con nuestros exclusivos ramos de girasoles, rosas amarillas y tulipanes dorados en Cusco. ¡Regala luz, alegría y amor!',
+  badge: '🌻 Especial Septiembre - Flores Amarillas',
+  driveImageUrl: 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=1200&q=80',
+  ctaText: 'Ver Flores Amarillas',
+  categoryRedirect: 'Festivos',
 };
 
 export const INITIAL_SETTINGS: BoutiqueSettings = {
@@ -498,3 +497,62 @@ export const INITIAL_SETTINGS: BoutiqueSettings = {
   bcpAccount: '215-98765432-0-12',
   interbankAccount: '003-892-0134567890-44',
 };
+
+export const INITIAL_SOCIAL_POSTS: SocialVideoPost[] = [
+  {
+    id: 'social-1',
+    platform: 'tiktok',
+    title: 'Ovejitas en la pradera 🐑🐑🌳',
+    description: 'Nuestra esencia y momentos en vivo en el campo y taller floral ✨ @rosanfer14 #TikTokPeru #Rosanfer #Cusco',
+    url: 'https://www.tiktok.com/@rosanfer14/video/7677590657304628500',
+    videoId: '7677590657304628500',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=800&q=80',
+    authorHandle: '@rosanfer14',
+    authorName: 'Rosanfer Florería Cusco',
+    isActive: true,
+    isPinned: true,
+    order: 1,
+  },
+  {
+    id: 'social-2',
+    platform: 'tiktok',
+    title: 'Momento de la Entrega Sorpresa en San Blas 🛵🎁',
+    description: 'Nuestra misión: entregar sonrisas y momentos inolvidables. La reacción de la cumpleañera no tiene precio 🥹💐 #DeliveryCusco #SorpresasCusco',
+    url: 'https://www.tiktok.com/@rosanfer14/video/7350123456789012346',
+    videoId: '7350123456789012346',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
+    authorHandle: '@rosanfer14',
+    authorName: 'Rosanfer Florería Cusco',
+    isActive: true,
+    isPinned: false,
+    order: 2,
+  },
+  {
+    id: 'social-3',
+    platform: 'tiktok',
+    title: 'Llegaron Tulipanes Holandeses y Girasoles Gigantes 🌻🌷',
+    description: 'Combinación primaveral en bases de cerámica artesanal con lazo de lino. ¿Cuál es tu color favorito? #TulipanesCusco #Girasoles #Rosanfer',
+    url: 'https://www.tiktok.com/@rosanfer14/video/7350123456789012347',
+    videoId: '7350123456789012347',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?auto=format&fit=crop&w=800&q=80',
+    authorHandle: '@rosanfer14',
+    authorName: 'Rosanfer Florería Cusco',
+    isActive: true,
+    isPinned: false,
+    order: 3,
+  },
+  {
+    id: 'social-4',
+    platform: 'instagram',
+    title: 'Detalle de Orquídeas Phalaenopsis & Tarjeta Caligrafiada 💌',
+    description: 'El arte de las palabras: escribimos tu dedicatoria a mano en papel couché sellado con lacre. #OrquideasCusco #DetallesFlorales',
+    url: 'https://www.instagram.com/reel/rosanfer.floreria',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=800&q=80',
+    authorHandle: '@rosanfer14',
+    authorName: 'Rosanfer Florería Cusco',
+    isActive: true,
+    isPinned: false,
+    order: 4,
+  },
+];
+

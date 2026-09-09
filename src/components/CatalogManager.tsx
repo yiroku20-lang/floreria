@@ -77,11 +77,10 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
   const [promoTitle, setPromoTitle] = useState(promoConfig.title);
   const [promoSubtitle, setPromoSubtitle] = useState(promoConfig.subtitle);
   const [promoBadge, setPromoBadge] = useState(promoConfig.badge);
-  const [promoCoupon, setPromoCoupon] = useState(promoConfig.couponCode || '');
   const [promoDriveUrl, setPromoDriveUrl] = useState(promoConfig.driveImageUrl);
   const [promoCtaText, setPromoCtaText] = useState(promoConfig.ctaText);
   const [promoEnabled, setPromoEnabled] = useState(promoConfig.isEnabled);
-  const [promoCategory, setPromoCategory] = useState(promoConfig.categoryRedirect || 'Primavera Para Ti');
+  const [promoCategory, setPromoCategory] = useState(promoConfig.categoryRedirect || 'Todos');
   const [promoFeedback, setPromoFeedback] = useState('');
   const [promoImageError, setPromoImageError] = useState(false);
   const [isPromoFramingOpen, setIsPromoFramingOpen] = useState(false);
@@ -206,13 +205,12 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
       title: promoTitle.trim(),
       subtitle: promoSubtitle.trim(),
       badge: promoBadge.trim(),
-      couponCode: promoCoupon.trim() || undefined,
       driveImageUrl: transformDriveUrl(promoDriveUrl),
-      ctaText: promoCtaText.trim() || 'Ver Colección',
+      ctaText: promoCtaText.trim() || 'Ver Arreglos Florales',
       categoryRedirect: promoCategory,
     };
     onUpdatePromoConfig(updatedPromo);
-    setPromoFeedback('¡Configuración de promoción guardada correctamente!');
+    setPromoFeedback('¡Configuración del popup de bienvenida guardada correctamente!');
     setTimeout(() => setPromoFeedback(''), 4000);
   };
 
@@ -249,7 +247,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
           }`}
         >
           <Sparkles className="w-4 h-4 text-[#D49A89]" />
-          <span>Popup Promocional & Links de Drive</span>
+          <span>Popup de Bienvenida / Comunicados</span>
         </button>
       </div>
 
@@ -955,19 +953,19 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
         </div>
       )}
 
-      {/* SUB-TAB 2: PROMOTION POPUP & DRIVE LINK SETTINGS */}
+      {/* SUB-TAB 2: PROMOTION / WELCOME POPUP & DRIVE LINK SETTINGS */}
       {activeSubTab === 'promo' && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#5C715E]/15 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-3">
             <div>
               <span className="text-xs uppercase font-bold text-[#5C715E] tracking-wider">
-                Marketing y Campañas Boutique
+                Comunicación & Bienvenida Boutique
               </span>
               <h3 className="text-xl font-serif-boutique font-bold text-[#2C362D]">
-                Configurar Popup Promocional (Poppat)
+                Configurar Popup al Ingreso (Bienvenida / Anuncio)
               </h3>
               <p className="text-xs text-gray-500">
-                Aparece a los clientes al ingresar para ofrecer descuentos y redirecciones.
+                Mensaje destacado que reciben los visitantes al ingresar a la tienda web.
               </p>
             </div>
 
@@ -979,7 +977,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
               className="px-5 py-2.5 rounded-full bg-[#D49A89] hover:bg-[#B87C6B] text-[#2C362D] font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95 cursor-pointer"
             >
               <Eye className="w-4 h-4" />
-              <span>Ver Popup en la Tienda</span>
+              <span>Ver Popup en Pantalla</span>
             </button>
           </div>
 
@@ -988,7 +986,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
             <div className="p-4 rounded-2xl bg-[#FBF9F6] border border-[#5C715E]/15 flex items-center justify-between">
               <div>
                 <label className="font-bold text-sm text-[#2C362D] block cursor-pointer">
-                  Activar Popup Promocional para Visitantes de la Web
+                  Activar Popup de Bienvenida / Comunicado
                 </label>
                 <p className="text-xs text-gray-500">
                   Si está marcado, se mostrará automáticamente con animación suave al entrar a la tienda.
@@ -1006,43 +1004,28 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Form Controls (7 cols) */}
               <div className="lg:col-span-7 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-[#2C362D] mb-1">
-                      Distintivo / Badge Superior
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej: Ocasión Especial Cusco"
-                      value={promoBadge}
-                      onChange={(e) => setPromoBadge(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#2C362D] mb-1">
-                      Cupón de Descuento (Opcional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ej: CUSCOFLORAL"
-                      value={promoCoupon}
-                      onChange={(e) => setPromoCoupon(e.target.value.toUpperCase())}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
-                    />
-                  </div>
-                </div>
-
                 <div>
                   <label className="block text-xs font-bold text-[#2C362D] mb-1">
-                    Título de la Promoción *
+                    Distintivo / Badge Superior
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Ej: Temporada de Amor & Tulipanes"
+                    placeholder="Ej: Taller Floral en Cusco"
+                    value={promoBadge}
+                    onChange={(e) => setPromoBadge(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#2C362D] mb-1">
+                    Título del Comunicado o Bienvenida *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: ¡Bienvenidos a Rosanfer Florería!"
                     value={promoTitle}
                     onChange={(e) => setPromoTitle(e.target.value)}
                     className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
@@ -1051,12 +1034,12 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-[#2C362D] mb-1">
-                    Subtítulo / Mensaje Promocional *
+                    Mensaje / Subtítulo para el Cliente *
                   </label>
                   <textarea
                     rows={2}
                     required
-                    placeholder="Ej: 15% de descuento en pedidos por WhatsApp para entregas en Cusco"
+                    placeholder="Ej: Diseñamos arreglos florales frescos para cada ocasión con delivery puntual en todo Cusco."
                     value={promoSubtitle}
                     onChange={(e) => setPromoSubtitle(e.target.value)}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
@@ -1073,6 +1056,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                       onChange={(e) => setPromoCategory(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                     >
+                      <option value="Todos">Todos (Catálogo Completo)</option>
                       <option value="Festivos">Festivos (Cumpleaños, Quinceañeros)</option>
                       <option value="Latidos en Flor">Latidos en Flor (Romance)</option>
                       <option value="Graduación">Graduación (Colaciones)</option>
@@ -1084,12 +1068,13 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
 
                   <div>
                     <label className="block text-xs font-bold text-[#2C362D] mb-1">
-                      Texto del Botón CTA
+                      Texto del Botón Principal
                     </label>
                     <input
                       type="text"
                       value={promoCtaText}
                       onChange={(e) => setPromoCtaText(e.target.value)}
+                      placeholder="Ej: Ver Arreglos Florales"
                       className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                     />
                   </div>
@@ -1100,7 +1085,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="flex items-center gap-1.5 text-xs font-bold text-[#2C362D]">
                       <Link className="w-4 h-4 text-[#5C715E]" />
-                      <span>Link de Google Drive con la Imagen Promocional *</span>
+                      <span>Link de Google Drive con la Imagen del Popup *</span>
                     </span>
                     <div className="flex items-center gap-2">
                       {promoDriveUrl.startsWith('data:image') && (
@@ -1215,33 +1200,27 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                   <div className="relative w-full aspect-16/10 bg-gray-100 overflow-hidden">
                     <img
                       src={transformDriveUrl(promoDriveUrl)}
-                      alt="Banner promocional"
+                      alt="Banner de bienvenida"
                       className="w-full h-full object-cover"
                       onError={() => setPromoImageError(true)}
                       onLoad={() => setPromoImageError(false)}
                     />
                     <div className="absolute top-3 left-3 bg-[#5C715E] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                      {promoBadge || 'Promoción'}
+                      {promoBadge || 'Bienvenida'}
                     </div>
                   </div>
 
                   <div className="p-4 space-y-2">
                     <h4 className="font-serif-boutique font-bold text-base text-[#2C362D]">
-                      {promoTitle || 'Título de la Promoción'}
+                      {promoTitle || 'Título del Comunicado'}
                     </h4>
                     <p className="text-xs text-gray-600">
-                      {promoSubtitle || 'Descripción o descuento para el cliente.'}
+                      {promoSubtitle || 'Mensaje de bienvenida para el cliente.'}
                     </p>
-
-                    {promoCoupon && (
-                      <div className="inline-block bg-[#FBF9F6] border border-dashed border-[#D49A89] px-3 py-1 rounded-lg font-mono text-xs font-bold text-[#D49A89]">
-                        Cupón: {promoCoupon}
-                      </div>
-                    )}
 
                     <div className="pt-2">
                       <div className="w-full py-2 px-4 rounded-xl bg-[#5C715E] text-white text-xs font-semibold">
-                        {promoCtaText || 'Ver Colección'}
+                        {promoCtaText || 'Ver Arreglos Florales'}
                       </div>
                     </div>
                   </div>

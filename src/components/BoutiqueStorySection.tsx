@@ -64,8 +64,9 @@ export const BoutiqueStorySection: React.FC<BoutiqueStorySectionProps> = ({
           <div className="lg:col-span-6 bg-white rounded-3xl p-6 sm:p-8 border border-[#5C715E]/15 shadow-rosanfer relative overflow-hidden group">
             <div className="relative h-72 sm:h-84 rounded-2xl overflow-hidden bg-[#EAE6DF]">
               <img
-                src="https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=1200&q=80"
-                alt="Confección y Taller Floral Rosanfer"
+                src="https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1200&q=80"
+                alt="Mesa de trabajo de floristería artesanal con flores frescas y herramientas de corte"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
@@ -107,7 +108,8 @@ export const BoutiqueStorySection: React.FC<BoutiqueStorySectionProps> = ({
               <div className="relative h-60 rounded-2xl overflow-hidden bg-[#EAE6DF]">
                 <img
                   src="https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1200&q=80"
-                  alt="Entrega floral a domicilio y regalo especial"
+                  alt="Ramo floral de autor envuelto listo para entrega sorpresa con dedicatoria"
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -173,40 +175,6 @@ export const BoutiqueStorySection: React.FC<BoutiqueStorySectionProps> = ({
                   Ver las 6 Colecciones
                 </button>
               </div>
-            </div>
-
-            {/* Brand Colors Swatch Bar */}
-            <div className="bg-white rounded-2xl p-4 border border-[#5C715E]/15 shadow-xs flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-[#5C715E] uppercase tracking-wider">
-                  Paleta Botánica:
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-5 h-5 rounded-full border border-black/10 shadow-xs"
-                    style={{ backgroundColor: '#FBF9F6' }}
-                    title="Lino Crudo: #FBF9F6"
-                  />
-                  <span
-                    className="w-5 h-5 rounded-full shadow-xs"
-                    style={{ backgroundColor: '#5C715E' }}
-                    title="Verde Salvia: #5C715E"
-                  />
-                  <span
-                    className="w-5 h-5 rounded-full shadow-xs"
-                    style={{ backgroundColor: '#D49A89' }}
-                    title="Rosa Empolvado: #D49A89"
-                  />
-                  <span
-                    className="w-5 h-5 rounded-full shadow-xs"
-                    style={{ backgroundColor: '#2C362D' }}
-                    title="Verde Bosque: #2C362D"
-                  />
-                </div>
-              </div>
-              <span className="text-[11px] text-gray-500 font-serif-boutique italic">
-                Rosanfer • Floristería de Autor
-              </span>
             </div>
           </div>
         </div>

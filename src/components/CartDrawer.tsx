@@ -87,12 +87,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [cardFrom, setCardFrom] = useState('');
   const [cardMessage, setCardMessage] = useState('');
 
-  // Promo coupon
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState(0); // in percentage
-  const [couponError, setCouponError] = useState('');
-  const [couponSuccess, setCouponSuccess] = useState('');
-
   // Newly placed order & payment states
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
   const [successWhatsappUrl, setSuccessWhatsappUrl] = useState('');
@@ -123,45 +117,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   // Financial calculations
-  const rawSubtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const discountAmount = (rawSubtotal * appliedDiscount) / 100;
-  const subtotal = Math.max(0, rawSubtotal - discountAmount);
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const deliveryFee = deliveryType === 'delivery' ? defaultDeliveryFee : 0;
   const total = subtotal + deliveryFee;
-
-  const handleApplyCoupon = () => {
-    setCouponError('');
-    setCouponSuccess('');
-    const code = couponCode.trim().toUpperCase();
-    if (!code) {
-      setCouponError('Ingresa un código de cupón.');
-      return;
-    }
-
-    const dynamicCode =
-      promoConfig?.isEnabled && promoConfig?.couponCode
-        ? promoConfig.couponCode.trim().toUpperCase()
-        : null;
-
-    if (dynamicCode && code === dynamicCode) {
-      let discount = 15;
-      const numMatch = dynamicCode.match(/\d+/);
-      if (numMatch) {
-        const parsed = parseInt(numMatch[0], 10);
-        if (parsed > 0 && parsed <= 90) discount = parsed;
-      }
-      setAppliedDiscount(discount);
-      setCouponSuccess(`¡Cupón promocional ${dynamicCode} aplicado! ${discount}% de descuento.`);
-    } else if (code === 'TULIPAN15' || code === 'ROSANFER15') {
-      setAppliedDiscount(15);
-      setCouponSuccess('¡Cupón aplicado! 15% de descuento.');
-    } else if (code === 'FLORES10') {
-      setAppliedDiscount(10);
-      setCouponSuccess('¡Cupón aplicado! 10% de descuento.');
-    } else {
-      setCouponError('Cupón inválido o expirado.');
-    }
-  };
 
   const handleProceedToCheckout = () => {
     if (items.length === 0) return;
@@ -253,10 +211,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     });
 
     messageText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    messageText += `*Subtotal:* ${formatCurrency(rawSubtotal)}\n`;
-    if (appliedDiscount > 0) {
-      messageText += `*Descuento (${appliedDiscount}%):* -${formatCurrency(discountAmount)}\n`;
-    }
+    messageText += `*Subtotal:* ${formatCurrency(subtotal)}\n`;
     messageText += `*Costo de Envío:* ${formatCurrency(deliveryFee)}\n`;
     if (notes.trim()) {
       messageText += `📝 *Observaciones:* ${notes}\n`;
@@ -406,38 +361,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   ))
                 )}
-
-                {/* Promo Code input in cart */}
-                {items.length > 0 && (
-                  <div className="pt-2">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="Cupón de descuento (ej: TULIPAN15)"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-[#5C715E]/20 bg-white focus:outline-none focus:ring-1 focus:ring-[#D49A89] uppercase"
-                        />
-                        <Tag className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                      </div>
-                      <button
-                        onClick={handleApplyCoupon}
-                        className="px-4 py-2 text-xs font-semibold rounded-xl bg-[#5C715E]/15 text-[#5C715E] hover:bg-[#5C715E] hover:text-white transition-colors"
-                      >
-                        Aplicar
-                      </button>
-                    </div>
-                    {couponSuccess && (
-                      <p className="text-xs text-emerald-700 font-medium mt-1">
-                        {couponSuccess}
-                      </p>
-                    )}
-                    {couponError && (
-                      <p className="text-xs text-red-500 font-medium mt-1">{couponError}</p>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Cart Footer */}
@@ -446,16 +369,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div className="space-y-1.5 text-xs text-[#2C362D]/80">
                     <div className="flex justify-between">
                       <span>Subtotal de flores:</span>
-                      <span className="font-semibold text-[#2C362D]">{formatCurrency(rawSubtotal)}</span>
+                      <span className="font-semibold text-[#2C362D]">{formatCurrency(subtotal)}</span>
                     </div>
-                    {appliedDiscount > 0 && (
-                      <div className="flex justify-between text-emerald-700 font-medium">
-                        <span>Descuento aplicado ({appliedDiscount}%):</span>
-                        <span>-{formatCurrency(discountAmount)}</span>
-                      </div>
-                    )}
                     <div className="flex justify-between text-[#5C715E]">
-                      <span>Envío:</span>
+                      <span>Envío a Domicilio:</span>
                       <span>Se calcula en el siguiente paso</span>
                     </div>
                   </div>

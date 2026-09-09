@@ -144,6 +144,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Cómo Entregamos
             </a>
+
+            <a
+              id="nav-link-social"
+              href="#redes-sociales-section"
+              className="text-sm tracking-wide text-[#2C362D]/75 hover:text-[#5C715E] transition-colors py-1 flex items-center gap-1.5"
+            >
+              <span>TikTok & Redes</span>
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            </a>
           </nav>
 
           {/* Right: Uncluttered Icon Actions */}
@@ -324,6 +333,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Cómo Entregamos (Taller & Envíos)</span>
                   <span className="text-[10px] bg-[#5C715E]/10 text-[#5C715E] font-bold px-2 py-0.5 rounded-full">
                     100% Delivery
+                  </span>
+                </a>
+
+                <a
+                  href="#redes-sociales-section"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 text-sm text-[#2C362D] hover:bg-[#5C715E]/10 rounded-lg flex items-center justify-between"
+                >
+                  <span>TikTok & Redes Sociales</span>
+                  <span className="text-[10px] bg-[#2C362D] text-white font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span>Videos</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse" />
                   </span>
                 </a>
               </div>

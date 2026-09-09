@@ -19,6 +19,7 @@ import {
   QrCode,
   Building2,
   Wallet,
+  Share2,
 } from 'lucide-react';
 import {
   Product,
@@ -28,10 +29,12 @@ import {
   BoutiqueSettings,
   OrderStatus,
   AdminSession,
+  SocialVideoPost,
 } from '../types';
 import { AdminOrdersDashboard } from './AdminOrdersDashboard';
 import { InventoryManager } from './InventoryManager';
 import { CatalogManager } from './CatalogManager';
+import { SocialMediaManager } from './SocialMediaManager';
 import { RosanferLogo } from './RosanferLogo';
 import { AdminLogin } from './AdminLogin';
 import { safeGetStorage, safeSetStorage, formatDate } from '../utils/driveUtils';
@@ -57,6 +60,8 @@ interface AdminPortalProps {
   promoConfig: PromoConfig;
   onUpdatePromoConfig: (promo: PromoConfig) => void;
   onTriggerPromoPreview: () => void;
+  socialPosts: SocialVideoPost[];
+  onUpdateSocialPosts: (posts: SocialVideoPost[]) => void;
   settings: BoutiqueSettings;
   onUpdateSettings: (settings: BoutiqueSettings) => void;
 }
@@ -76,6 +81,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   promoConfig,
   onUpdatePromoConfig,
   onTriggerPromoPreview,
+  socialPosts,
+  onUpdateSocialPosts,
   settings,
   onUpdateSettings,
 }) => {
@@ -84,7 +91,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     return safeGetStorage<AdminSession | null>('rosanfer_admin_active_session', null);
   });
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'catalog' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'catalog' | 'social' | 'settings'>('orders');
 
   // Settings form state
   const [waNumber, setWaNumber] = useState(settings.whatsappNumber);
@@ -288,6 +295,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </button>
 
           <button
+            id="tab-admin-social"
+            onClick={() => setActiveTab('social')}
+            className={`py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'social'
+                ? 'bg-[#5C715E] text-white shadow-md'
+                : 'bg-white text-[#2C362D] hover:bg-[#5C715E]/10 border border-[#5C715E]/15'
+            }`}
+          >
+            <Share2 className="w-4 h-4 shrink-0" />
+            <span>Redes & TikTok ({socialPosts.length})</span>
+          </button>
+
+          <button
             id="tab-admin-settings"
             onClick={() => setActiveTab('settings')}
             className={`py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
@@ -333,7 +353,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           />
         )}
 
-        {/* Tab 4: Boutique Settings & Security */}
+        {/* Tab 4: Social Media & TikTok Showcase */}
+        {activeTab === 'social' && (
+          <SocialMediaManager
+            posts={socialPosts}
+            onUpdatePosts={onUpdateSocialPosts}
+          />
+        )}
+
+        {/* Tab 5: Boutique Settings & Security */}
         {activeTab === 'settings' && (
           <div className="space-y-8 max-w-3xl mx-auto">
             {/* Storefront Parameters */}
