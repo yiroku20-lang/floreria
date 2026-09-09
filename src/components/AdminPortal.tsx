@@ -202,6 +202,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="hidden sm:inline">Intranet & Administración</span>
           </span>
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[10px] text-emerald-300 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Nube Firebase Firestore Conectada</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">

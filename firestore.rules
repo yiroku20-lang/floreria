@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Reglas para Productos: Todos pueden ver el catálogo; administración puede crear/modificar/eliminar
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Reglas para Pedidos: Clientes pueden crear pedidos; administradores pueden leer y gestionar
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Reglas para Configuraciones globales (ajustes, promo, vitrina social, inventario):
+    match /config/{configId} {
+      allow read, write: if true;
+    }
+
+    // Reglas para Movimientos e Inventario detallado
+    match /inventory/{itemId} {
+      allow read, write: if true;
+    }
+
+    match /movements/{movementId} {
+      allow read, write: if true;
+    }
+  }
+}

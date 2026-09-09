@@ -16,7 +16,7 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
   onOpenCart,
 }) => {
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 pointer-events-none">
+    <div className="fixed bottom-7 sm:bottom-9 right-5 sm:right-7 z-50 flex flex-col items-end gap-3.5 pointer-events-none">
       {/* Mobile Floating Cart Summary Bar if cart has items */}
       {cartCount > 0 && (
         <button
@@ -45,14 +45,18 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
         )}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="pointer-events-auto w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group"
+        className="pointer-events-auto relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border-2 border-white"
         aria-label="Contactar por WhatsApp"
         title="Chatear con un florista por WhatsApp"
       >
-        <Phone className="w-6 h-6 sm:w-7 sm:h-7 fill-white" />
+        <Phone className="w-7 h-7 sm:w-8 sm:h-8 fill-white" />
+        
+        {/* Animated pulse ring */}
+        <span className="absolute -inset-1 rounded-full bg-[#25D366]/40 animate-ping pointer-events-none opacity-75" />
+
         {/* Tooltip on hover */}
-        <span className="absolute right-16 bg-[#2C362D] text-white text-xs font-medium px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          ¿Dudas? Chatea con nosotros
+        <span className="absolute right-18 bg-[#2C362D] text-white text-xs font-medium px-3.5 py-1.5 rounded-xl shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10">
+          ¿Dudas? Chatea con nosotros por WhatsApp
         </span>
       </a>
     </div>

@@ -49,3 +49,22 @@ body {
 .shadow-rosanfer-lg {
   box-shadow: 0 20px 40px -15px rgba(92, 113, 94, 0.18), 0 8px 24px -4px rgba(212, 154, 137, 0.15);
 }
+
+/* Ocultar badge o marca de agua inyectada por Netlify / Hosting gratuito */
+[data-netlify-badge],
+.netlify-badge,
+#netlify-badge,
+div[class*="netlify-drawer"],
+div[class*="NetlifyBadge"],
+div[id*="netlify-identity"],
+[class*="netlify-feedback-button"],
+a[href*="netlify.com"][style*="position: fixed"],
+div[style*="position: fixed"][style*="bottom: 0"][style*="right: 0"] a[href*="netlify"] {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+}

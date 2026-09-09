@@ -9,6 +9,22 @@ import {
   INITIAL_SOCIAL_POSTS,
 } from './data/initialData';
 import { safeGetStorage, safeSetStorage } from './utils/driveUtils';
+import {
+  subscribeToProducts,
+  subscribeToOrders,
+  subscribeToSettings,
+  subscribeToPromo,
+  subscribeToSocialPosts,
+  subscribeToMovements,
+  saveProductToFirestore,
+  deleteProductFromFirestore,
+  saveOrderToFirestore,
+  updateOrderStatusInFirestore,
+  saveSettingsToFirestore,
+  savePromoToFirestore,
+  saveSocialPostsToFirestore,
+  saveMovementToFirestore,
+} from './lib/firebase';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
 import { CatalogSection } from './components/CatalogSection';
@@ -22,55 +38,31 @@ import { Footer } from './components/Footer';
 import { FloatingActions } from './components/FloatingActions';
 
 export default function App() {
-  // State with LocalStorage fallbacks and smart upgrade for new collections
+  // State with LocalStorage fallbacks and real-time Firestore sync
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = safeGetStorage<Product[]>('rosanfer_products', INITIAL_PRODUCTS);
     if (Array.isArray(saved) && saved.length > 0) {
-      const hasNewCategories = saved.some((p) =>
-        ['Festivos', 'Latidos en Flor', 'Graduación', 'Set Nupcial "Sí Acepto"', 'Amor Eterno', 'Primavera Para Ti'].includes(p.category)
-      );
-      if (hasNewCategories) {
-        return saved;
-      }
-      return INITIAL_PRODUCTS;
+      return saved;
     }
     return INITIAL_PRODUCTS;
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = safeGetStorage<Order[]>('rosanfer_orders', INITIAL_ORDERS);
-    if (Array.isArray(saved) && saved.length > 0 && !saved[0].customerPhone.includes('981')) {
-      return saved;
-    }
-    return INITIAL_ORDERS;
+    return Array.isArray(saved) ? saved : INITIAL_ORDERS;
   });
 
   const [movements, setMovements] = useState<InventoryMovement[]>(() =>
     safeGetStorage('rosanfer_movements', INITIAL_MOVEMENTS)
   );
 
-  const [promoConfig, setPromoConfig] = useState<PromoConfig>(() => {
-    const saved = safeGetStorage<PromoConfig>('rosanfer_promo', INITIAL_PROMO);
-    if (saved && (saved.title.includes('Bienvenidos') || !saved.driveImageUrl.includes('photo-1597848212624'))) {
-      return INITIAL_PROMO;
-    }
-    return saved || INITIAL_PROMO;
-  });
+  const [promoConfig, setPromoConfig] = useState<PromoConfig>(() =>
+    safeGetStorage('rosanfer_promo', INITIAL_PROMO)
+  );
 
   const [settings, setSettings] = useState<BoutiqueSettings>(() => {
     const saved = safeGetStorage<BoutiqueSettings>('rosanfer_settings', INITIAL_SETTINGS);
-    if (saved && saved.storeCity && saved.storeCity.includes('Cusco')) {
-      const merged = { ...INITIAL_SETTINGS, ...saved };
-      // Ensure the official contact number is 989415220 if previous session had old placeholder
-      if (merged.whatsappNumber === '51984234567') {
-        merged.whatsappNumber = '51989415220';
-      }
-      if (merged.yapeNumber === '984 234 567') {
-        merged.yapeNumber = '989 415 220';
-      }
-      return merged;
-    }
-    return INITIAL_SETTINGS;
+    return saved ? { ...INITIAL_SETTINGS, ...saved } : INITIAL_SETTINGS;
   });
 
   const [socialPosts, setSocialPosts] = useState<SocialVideoPost[]>(() =>
@@ -81,6 +73,8 @@ export default function App() {
     safeGetStorage('rosanfer_cart', [])
   );
 
+  const [isCloudConnected, setIsCloudConnected] = useState(true);
+
   // UI state
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -88,6 +82,85 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState<Product | null>(null);
   const [forceOpenPromo, setForceOpenPromo] = useState(false);
+
+  // --- SUSCRIPCIONES EN TIEMPO REAL CON FIREBASE FIRESTORE ---
+  useEffect(() => {
+    // 1. Productos
+    const unsubProducts = subscribeToProducts(
+      (cloudProducts) => {
+        if (cloudProducts && cloudProducts.length > 0) {
+          setProducts(cloudProducts);
+          safeSetStorage('rosanfer_products', cloudProducts);
+        }
+        setIsCloudConnected(true);
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    // 2. Pedidos
+    const unsubOrders = subscribeToOrders(
+      (cloudOrders) => {
+        if (cloudOrders) {
+          setOrders(cloudOrders);
+          safeSetStorage('rosanfer_orders', cloudOrders);
+        }
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    // 3. Ajustes de la boutique
+    const unsubSettings = subscribeToSettings(
+      (cloudSettings) => {
+        if (cloudSettings) {
+          setSettings(cloudSettings);
+          safeSetStorage('rosanfer_settings', cloudSettings);
+        }
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    // 4. Popup de promoción
+    const unsubPromo = subscribeToPromo(
+      (cloudPromo) => {
+        if (cloudPromo) {
+          setPromoConfig(cloudPromo);
+          safeSetStorage('rosanfer_promo', cloudPromo);
+        }
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    // 5. Vitrina de redes sociales
+    const unsubSocial = subscribeToSocialPosts(
+      (cloudPosts) => {
+        if (cloudPosts) {
+          setSocialPosts(cloudPosts);
+          safeSetStorage('rosanfer_social_posts', cloudPosts);
+        }
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    // 6. Movimientos de inventario
+    const unsubMovements = subscribeToMovements(
+      (cloudMovements) => {
+        if (cloudMovements) {
+          setMovements(cloudMovements);
+          safeSetStorage('rosanfer_movements', cloudMovements);
+        }
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    return () => {
+      unsubProducts();
+      unsubOrders();
+      unsubSettings();
+      unsubPromo();
+      unsubSocial();
+      unsubMovements();
+    };
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -147,18 +220,30 @@ export default function App() {
     setCart([]);
   };
 
-  // Order created handler
-  const handleOrderCreated = (newOrder: Order) => {
-    // 1. Add order to central list
+  // Order created handler -> Guardar en Firestore y sincronizar stock
+  const handleOrderCreated = async (newOrder: Order) => {
+    // 1. Guardar orden en Firestore y estado local
     setOrders((prev) => [newOrder, ...prev]);
+    try {
+      await saveOrderToFirestore(newOrder);
+    } catch (err) {
+      console.warn('Error guardando orden en Firestore:', err);
+    }
 
-    // 2. Automatically decrease stock & register movement for each product
-    newOrder.items.forEach((item) => {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === item.product.id ? { ...p, stock: Math.max(0, p.stock - item.quantity) } : p
-        )
-      );
+    // 2. Disminuir stock y registrar movimiento en Firestore para cada producto
+    newOrder.items.forEach(async (item) => {
+      const prod = products.find((p) => p.id === item.product.id);
+      if (prod) {
+        const updatedProd = { ...prod, stock: Math.max(0, prod.stock - item.quantity) };
+        setProducts((prev) =>
+          prev.map((p) => (p.id === item.product.id ? updatedProd : p))
+        );
+        try {
+          await saveProductToFirestore(updatedProd);
+        } catch (e) {
+          console.warn('Error actualizando stock en Firestore:', e);
+        }
+      }
 
       const autoMovement: InventoryMovement = {
         id: `mov-${Date.now()}-${item.product.id}`,
@@ -172,17 +257,27 @@ export default function App() {
       };
 
       setMovements((prev) => [autoMovement, ...prev]);
+      try {
+        await saveMovementToFirestore(autoMovement);
+      } catch (e) {
+        console.warn('Error guardando movimiento en Firestore:', e);
+      }
     });
   };
 
-  const handleUpdateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
+    try {
+      await updateOrderStatusInFirestore(orderId, newStatus);
+    } catch (err) {
+      console.warn('Error actualizando estado en Firestore:', err);
+    }
   };
 
   // Inventory operations
-  const handleRegisterMovement = (
+  const handleRegisterMovement = async (
     productId: string,
     type: 'entrada' | 'salida',
     quantity: number,
@@ -193,15 +288,16 @@ export default function App() {
     if (!product) return;
 
     // Update product stock
+    const newStock = type === 'entrada' ? product.stock + quantity : Math.max(0, product.stock - quantity);
+    const updatedProd = { ...product, stock: newStock };
     setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id === productId) {
-          const newStock = type === 'entrada' ? p.stock + quantity : Math.max(0, p.stock - quantity);
-          return { ...p, stock: newStock };
-        }
-        return p;
-      })
+      prev.map((p) => (p.id === productId ? updatedProd : p))
     );
+    try {
+      await saveProductToFirestore(updatedProd);
+    } catch (e) {
+      console.warn('Error guardando producto en Firestore:', e);
+    }
 
     // Add movement
     const movement: InventoryMovement = {
@@ -215,16 +311,27 @@ export default function App() {
       date: new Date().toISOString(),
     };
     setMovements((prev) => [movement, ...prev]);
+    try {
+      await saveMovementToFirestore(movement);
+    } catch (e) {
+      console.warn('Error guardando movimiento en Firestore:', e);
+    }
   };
 
-  const handleQuickAdjustStock = (productId: string, delta: number) => {
+  const handleQuickAdjustStock = async (productId: string, delta: number) => {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
 
     const newStock = Math.max(0, product.stock + delta);
+    const updatedProd = { ...product, stock: newStock };
     setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, stock: newStock } : p))
+      prev.map((p) => (p.id === productId ? updatedProd : p))
     );
+    try {
+      await saveProductToFirestore(updatedProd);
+    } catch (e) {
+      console.warn('Error guardando producto en Firestore:', e);
+    }
 
     const movement: InventoryMovement = {
       id: `mov-${Date.now()}`,
@@ -237,26 +344,74 @@ export default function App() {
       date: new Date().toISOString(),
     };
     setMovements((prev) => [movement, ...prev]);
+    try {
+      await saveMovementToFirestore(movement);
+    } catch (e) {
+      console.warn('Error guardando movimiento en Firestore:', e);
+    }
   };
 
   // Catalog operations
-  const handleAddProduct = (newProduct: Product) => {
+  const handleAddProduct = async (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
     setActiveCategory('Todos');
     setSearchQuery('');
+    try {
+      await saveProductToFirestore(newProduct);
+    } catch (e) {
+      console.warn('Error guardando producto en Firestore:', e);
+    }
   };
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
+  const handleUpdateProduct = async (updatedProduct: Product) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
     );
     setActiveCategory('Todos');
     setSearchQuery('');
+    try {
+      await saveProductToFirestore(updatedProduct);
+    } catch (e) {
+      console.warn('Error actualizando producto en Firestore:', e);
+    }
   };
 
-  const handleDeleteProduct = (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
+    try {
+      await deleteProductFromFirestore(productId);
+    } catch (e) {
+      console.warn('Error eliminando producto de Firestore:', e);
+    }
+  };
+
+  // Settings & Promo mutations with Firestore sync
+  const handleUpdateSettings = async (newSettings: BoutiqueSettings) => {
+    setSettings(newSettings);
+    try {
+      await saveSettingsToFirestore(newSettings);
+    } catch (e) {
+      console.warn('Error guardando ajustes en Firestore:', e);
+    }
+  };
+
+  const handleUpdatePromoConfig = async (newPromo: PromoConfig) => {
+    setPromoConfig(newPromo);
+    try {
+      await savePromoToFirestore(newPromo);
+    } catch (e) {
+      console.warn('Error guardando promo en Firestore:', e);
+    }
+  };
+
+  const handleUpdateSocialPosts = async (newPosts: SocialVideoPost[]) => {
+    setSocialPosts(newPosts);
+    try {
+      await saveSocialPostsToFirestore(newPosts);
+    } catch (e) {
+      console.warn('Error guardando redes en Firestore:', e);
+    }
   };
 
   // Cart financial summary
@@ -369,13 +524,14 @@ export default function App() {
         onRegisterMovement={handleRegisterMovement}
         onQuickAdjustStock={handleQuickAdjustStock}
         promoConfig={promoConfig}
-        onUpdatePromoConfig={setPromoConfig}
+        onUpdatePromoConfig={handleUpdatePromoConfig}
         onTriggerPromoPreview={() => setForceOpenPromo(true)}
         socialPosts={socialPosts}
-        onUpdateSocialPosts={setSocialPosts}
+        onUpdateSocialPosts={handleUpdateSocialPosts}
         settings={settings}
-        onUpdateSettings={setSettings}
+        onUpdateSettings={handleUpdateSettings}
       />
     </div>
   );
 }
+

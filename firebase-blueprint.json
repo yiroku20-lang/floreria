@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rosanfer Floreria Boutique Firestore Schema",
+  "description": "Schema definitions for Rosanfer Florería Firestore collections and documents",
+  "collections": {
+    "products": {
+      "description": "Floral products and arrangements in the boutique catalog",
+      "fields": {
+        "id": { "type": "string", "description": "Unique product ID" },
+        "name": { "type": "string", "description": "Product display name" },
+        "price": { "type": "number", "description": "Current selling price in PEN" },
+        "originalPrice": { "type": "number", "description": "Original price before discount" },
+        "category": { "type": "string", "description": "Floral category (e.g. Ramos, Cajas, Festivos)" },
+        "driveImageUrl": { "type": "string", "description": "Google Drive or web image URL" },
+        "description": { "type": "string", "description": "Detailed bouquet description" },
+        "flowersIncluded": { "type": "array", "description": "List of flower species in the arrangement" },
+        "isPopular": { "type": "boolean", "description": "Whether it is featured as popular" },
+        "inStock": { "type": "boolean", "description": "Stock availability flag" },
+        "tag": { "type": "string", "description": "Highlight tag (e.g. Mas Vendido, Septiembre)" },
+        "orderRank": { "type": "number", "description": "Sort order priority in catalog" }
+      }
+    },
+    "orders": {
+      "description": "Customer floral orders placed through the website or WhatsApp",
+      "fields": {
+        "id": { "type": "string", "description": "Unique order tracking ID" },
+        "customerName": { "type": "string", "description": "Client full name" },
+        "customerPhone": { "type": "string", "description": "Contact phone or WhatsApp" },
+        "deliveryAddress": { "type": "string", "description": "Delivery destination address in Cusco" },
+        "deliveryDate": { "type": "string", "description": "Date scheduled for delivery" },
+        "deliveryTimeSlot": { "type": "string", "description": "Time window for delivery" },
+        "recipientName": { "type": "string", "description": "Name of person receiving the flowers" },
+        "dedicationMessage": { "type": "string", "description": "Dedication card note" },
+        "items": { "type": "array", "description": "List of ordered items with quantities and options" },
+        "total": { "type": "number", "description": "Total order amount in PEN" },
+        "status": { "type": "string", "description": "Order state: pendiente, preparando, en_camino, entregado, cancelado" },
+        "isPaid": { "type": "boolean", "description": "Payment verification flag" },
+        "notes": { "type": "string", "description": "Internal florist notes" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of creation" }
+      }
+    },
+    "config": {
+      "description": "Singleton configuration documents (settings, promo, social)",
+      "fields": {
+        "id": { "type": "string", "description": "Document ID (settings, promo, social, inventory)" },
+        "data": { "type": "object", "description": "Configuration object payload" },
+        "updatedAt": { "type": "string", "description": "Last update ISO timestamp" }
+      }
+    }
+  }
+}
