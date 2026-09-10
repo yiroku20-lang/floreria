@@ -1,6 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
-  initializeFirestore,
   getFirestore,
   collection,
   doc,
@@ -12,6 +11,7 @@ import {
   getDoc,
   Firestore,
 } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 import type {
   Product,
   Order,
@@ -30,33 +30,53 @@ import {
 } from '../data/initialData';
 import { transformDriveUrl, BOUTIQUE_FALLBACK_IMAGE } from '../utils/driveUtils';
 
-// Configuración de Firebase
+// Identificador de la base de datos de Firestore
+export const FIRESTORE_DATABASE_ID = "ai-studio-rosanferflorerab-abf1e0af-8ef8-427d-8120-7ccfcdb317b5";
+
+// Configuración completa de Firebase
 export const firebaseConfig = {
-  projectId: "wired-signifier-q40ks",
-  appId: "1:242162152938:web:00fb951d89cd75411bae93",
   apiKey: "AIzaSyAZwuG_XFAQ5oLuwcsuZ6M-IQ28pGquDWM",
   authDomain: "wired-signifier-q40ks.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-rosanferflorerab-abf1e0af-8ef8-427d-8120-7ccfcdb317b5",
+  projectId: "wired-signifier-q40ks",
   storageBucket: "wired-signifier-q40ks.firebasestorage.app",
   messagingSenderId: "242162152938",
+  appId: "1:242162152938:web:00fb951d89cd75411bae93",
+  firestoreDatabaseId: FIRESTORE_DATABASE_ID,
 };
 
-// Inicialización de la aplicación Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Log de diagnóstico al montar la aplicación
+console.log("[Firebase] Conectando a:", firebaseConfig.projectId, "BD:", FIRESTORE_DATABASE_ID);
 
-// Inicialización de Firestore robusta para navegadores y preview iframes
-function getInitializedFirestore(): Firestore {
-  try {
-    return initializeFirestore(app, {
-      experimentalAutoDetectLongPolling: true,
-      experimentalForceLongPolling: false,
-    }, firebaseConfig.firestoreDatabaseId);
-  } catch {
-    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
-  }
+// Inicialización de la aplicación Firebase
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+// Firebase Storage
+export const storage: FirebaseStorage = getStorage(app);
+
+// Instancias de Firestore: Intentar base de datos nombrada y proveer fallback a (default)
+let instanceNamed: Firestore;
+let instanceDefault: Firestore;
+
+try {
+  instanceNamed = getFirestore(app, FIRESTORE_DATABASE_ID);
+} catch (e) {
+  console.warn('[Firebase] No se pudo inicializar la base de datos nombrada:', e);
+  instanceNamed = getFirestore(app);
 }
 
-export const db: Firestore = getInitializedFirestore();
+try {
+  instanceDefault = getFirestore(app);
+} catch (e) {
+  console.warn('[Firebase] No se pudo inicializar la base de datos (default):', e);
+  instanceDefault = instanceNamed;
+}
+
+export const dbNamed: Firestore = instanceNamed;
+export const dbDefault: Firestore = instanceDefault;
+
+// Base de datos activa (inicia con dbNamed y se conmuta automáticamente si es necesario)
+export let activeDb: Firestore = dbNamed;
+export const db: Firestore = activeDb;
 
 // Nombres de colecciones y documentos
 const COLLECTIONS = {
@@ -64,6 +84,8 @@ const COLLECTIONS = {
   ORDERS: 'orders',
   CONFIG: 'config',
   MOVEMENTS: 'movements',
+  SETTINGS: 'settings',
+  PROMO: 'promo',
 };
 
 const DOCS = {
@@ -165,33 +187,75 @@ export function normalizeProductData(docId: string, raw: any): Product {
 // --- SERVICIOS DE SINCRONIZACIÓN EN TIEMPO REAL ---
 
 /**
- * Escucha cambios en tiempo real del catálogo de productos
+ * Escucha cambios en tiempo real del catálogo de productos con fallback resiliente
  */
 export function subscribeToProducts(
   callback: (products: Product[]) => void,
   onError?: (err: Error) => void
 ) {
-  const colRef = collection(db, COLLECTIONS.PRODUCTS);
-  return onSnapshot(
-    colRef,
-    async (snapshot) => {
-      if (snapshot.empty) {
-        console.log('🌱 Firestore vacío: sembrando catálogo inicial en la nube...');
-        await seedInitialProducts();
-        callback(INITIAL_PRODUCTS);
-      } else {
-        const prods: Product[] = [];
-        snapshot.forEach((docSnap) => {
-          prods.push(normalizeProductData(docSnap.id, docSnap.data()));
-        });
-        callback(prods);
+  let unsubActive: (() => void) | null = null;
+  let hasReceivedData = false;
+
+  const listen = (targetDb: Firestore, isDefaultFallback: boolean) => {
+    try {
+      const colRef = collection(targetDb, COLLECTIONS.PRODUCTS);
+      return onSnapshot(
+        colRef,
+        async (snapshot) => {
+          hasReceivedData = true;
+          activeDb = targetDb;
+          if (snapshot.empty) {
+            console.log(
+              `[Firebase] Colección 'products' en ${
+                isDefaultFallback ? '(default)' : FIRESTORE_DATABASE_ID
+              } está vacía. Sembrando catálogo inicial...`
+            );
+            await seedInitialProducts(targetDb);
+            callback(INITIAL_PRODUCTS);
+          } else {
+            console.log(
+              `[Firebase] ${snapshot.size} productos cargados desde Firestore [${
+                isDefaultFallback ? '(default)' : 'personalizada'
+              }].`
+            );
+            const prods: Product[] = [];
+            snapshot.forEach((docSnap) => {
+              prods.push(normalizeProductData(docSnap.id, docSnap.data()));
+            });
+            callback(prods);
+          }
+        },
+        async (err) => {
+          console.warn(
+            `[Firebase] Error en suscripción a 'products' [${
+              isDefaultFallback ? '(default)' : 'personalizada'
+            }]:`,
+            err?.code || err?.message || err
+          );
+          if (!isDefaultFallback && !hasReceivedData && targetDb !== dbDefault) {
+            console.log("[Firebase] Activando fallback a base de datos (default)...");
+            activeDb = dbDefault;
+            if (unsubActive) unsubActive();
+            unsubActive = listen(dbDefault, true);
+          } else {
+            if (onError) onError(err);
+          }
+        }
+      );
+    } catch (e: any) {
+      console.warn('[Firebase] Fallo al iniciar onSnapshot en products:', e);
+      if (!isDefaultFallback && !hasReceivedData && targetDb !== dbDefault) {
+        return listen(dbDefault, true);
       }
-    },
-    (err) => {
-      // Manejo silencioso de errores de red para no interrumpir al usuario
-      if (onError) onError(err);
+      return () => {};
     }
-  );
+  };
+
+  unsubActive = listen(activeDb, activeDb === dbDefault);
+
+  return () => {
+    if (unsubActive) unsubActive();
+  };
 }
 
 /**
@@ -201,23 +265,51 @@ export function subscribeToOrders(
   callback: (orders: Order[]) => void,
   onError?: (err: Error) => void
 ) {
-  const colRef = collection(db, COLLECTIONS.ORDERS);
-  return onSnapshot(
-    colRef,
-    (snapshot) => {
-      const orders: Order[] = [];
-      snapshot.forEach((docSnap) => {
-        orders.push(docSnap.data() as Order);
-      });
-      orders.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  let unsubActive: (() => void) | null = null;
+  let hasReceivedData = false;
+
+  const listen = (targetDb: Firestore, isDefaultFallback: boolean) => {
+    try {
+      const colRef = collection(targetDb, COLLECTIONS.ORDERS);
+      return onSnapshot(
+        colRef,
+        (snapshot) => {
+          hasReceivedData = true;
+          const orders: Order[] = [];
+          snapshot.forEach((docSnap) => {
+            orders.push(docSnap.data() as Order);
+          });
+          orders.sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          callback(orders);
+        },
+        (err) => {
+          console.warn(
+            `[Firebase] Error en suscripción a 'orders' [${
+              isDefaultFallback ? '(default)' : 'personalizada'
+            }]:`,
+            err?.code || err?.message
+          );
+          if (!isDefaultFallback && !hasReceivedData && targetDb !== dbDefault) {
+            if (unsubActive) unsubActive();
+            unsubActive = listen(dbDefault, true);
+          } else {
+            if (onError) onError(err);
+          }
+        }
       );
-      callback(orders);
-    },
-    (err) => {
-      if (onError) onError(err);
+    } catch (e: any) {
+      console.warn('[Firebase] Fallo al iniciar onSnapshot en orders:', e);
+      return () => {};
     }
-  );
+  };
+
+  unsubActive = listen(activeDb, activeDb === dbDefault);
+
+  return () => {
+    if (unsubActive) unsubActive();
+  };
 }
 
 /**
@@ -227,7 +319,7 @@ export function subscribeToSettings(
   callback: (settings: BoutiqueSettings) => void,
   onError?: (err: Error) => void
 ) {
-  const docRef = doc(db, COLLECTIONS.CONFIG, DOCS.SETTINGS);
+  const docRef = doc(activeDb, COLLECTIONS.CONFIG, DOCS.SETTINGS);
   return onSnapshot(
     docRef,
     async (snapshot) => {
@@ -239,6 +331,7 @@ export function subscribeToSettings(
       }
     },
     (err) => {
+      console.warn('[Firebase] Settings error:', err?.message);
       if (onError) onError(err);
     }
   );
@@ -251,7 +344,7 @@ export function subscribeToPromo(
   callback: (promo: PromoConfig) => void,
   onError?: (err: Error) => void
 ) {
-  const docRef = doc(db, COLLECTIONS.CONFIG, DOCS.PROMO);
+  const docRef = doc(activeDb, COLLECTIONS.CONFIG, DOCS.PROMO);
   return onSnapshot(
     docRef,
     async (snapshot) => {
@@ -263,6 +356,7 @@ export function subscribeToPromo(
       }
     },
     (err) => {
+      console.warn('[Firebase] Promo error:', err?.message);
       if (onError) onError(err);
     }
   );
@@ -275,7 +369,7 @@ export function subscribeToSocialPosts(
   callback: (posts: SocialVideoPost[]) => void,
   onError?: (err: Error) => void
 ) {
-  const docRef = doc(db, COLLECTIONS.CONFIG, DOCS.SOCIAL);
+  const docRef = doc(activeDb, COLLECTIONS.CONFIG, DOCS.SOCIAL);
   return onSnapshot(
     docRef,
     async (snapshot) => {
@@ -288,6 +382,7 @@ export function subscribeToSocialPosts(
       }
     },
     (err) => {
+      console.warn('[Firebase] Social posts error:', err?.message);
       if (onError) onError(err);
     }
   );
@@ -300,7 +395,7 @@ export function subscribeToMovements(
   callback: (movements: InventoryMovement[]) => void,
   onError?: (err: Error) => void
 ) {
-  const colRef = collection(db, COLLECTIONS.MOVEMENTS);
+  const colRef = collection(activeDb, COLLECTIONS.MOVEMENTS);
   return onSnapshot(
     colRef,
     async (snapshot) => {
@@ -318,6 +413,7 @@ export function subscribeToMovements(
       }
     },
     (err) => {
+      console.warn('[Firebase] Movements error:', err?.message);
       if (onError) onError(err);
     }
   );
@@ -329,36 +425,68 @@ export function subscribeToMovements(
  * Guarda o actualiza un producto individual en Firestore
  */
 export async function saveProductToFirestore(product: Product): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.PRODUCTS, product.id);
-  await setDoc(docRef, product, { merge: true });
+  try {
+    const docRef = doc(activeDb, COLLECTIONS.PRODUCTS, product.id);
+    await setDoc(docRef, product, { merge: true });
+    
+    // Espejo en la base secundaria si está disponible
+    const secondaryDb = activeDb === dbNamed ? dbDefault : dbNamed;
+    if (secondaryDb && secondaryDb !== activeDb) {
+      setDoc(doc(secondaryDb, COLLECTIONS.PRODUCTS, product.id), product, { merge: true }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('[Firebase] Error al guardar producto:', err);
+    throw err;
+  }
 }
 
 /**
  * Elimina un producto de Firestore
  */
 export async function deleteProductFromFirestore(productId: string): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.PRODUCTS, productId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(activeDb, COLLECTIONS.PRODUCTS, productId);
+    await deleteDoc(docRef);
+
+    const secondaryDb = activeDb === dbNamed ? dbDefault : dbNamed;
+    if (secondaryDb && secondaryDb !== activeDb) {
+      deleteDoc(doc(secondaryDb, COLLECTIONS.PRODUCTS, productId)).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('[Firebase] Error al eliminar producto:', err);
+    throw err;
+  }
 }
 
 /**
  * Guarda el lote completo de productos en Firestore
  */
 export async function saveAllProductsToFirestore(products: Product[]): Promise<void> {
-  const batch = writeBatch(db);
-  products.forEach((p) => {
-    const ref = doc(db, COLLECTIONS.PRODUCTS, p.id);
-    batch.set(ref, p);
-  });
-  await batch.commit();
+  try {
+    await replaceAllProductsInFirestore(products, activeDb);
+    console.log('[Firebase] ✅ Catálogo completo sincronizado con Firestore');
+  } catch (err) {
+    console.warn('[Firebase] Error al sincronizar productos completos:', err);
+    throw err;
+  }
 }
 
 /**
  * Registra o actualiza un pedido en Firestore
  */
 export async function saveOrderToFirestore(order: Order): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.ORDERS, order.id);
-  await setDoc(docRef, order, { merge: true });
+  try {
+    const docRef = doc(activeDb, COLLECTIONS.ORDERS, order.id);
+    await setDoc(docRef, order, { merge: true });
+
+    const secondaryDb = activeDb === dbNamed ? dbDefault : dbNamed;
+    if (secondaryDb && secondaryDb !== activeDb) {
+      setDoc(doc(secondaryDb, COLLECTIONS.ORDERS, order.id), order, { merge: true }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('[Firebase] Error al guardar pedido:', err);
+    throw err;
+  }
 }
 
 /**
@@ -369,7 +497,7 @@ export async function updateOrderStatusInFirestore(
   status: Order['status'],
   notes?: string
 ): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.ORDERS, orderId);
+  const docRef = doc(activeDb, COLLECTIONS.ORDERS, orderId);
   const payload: Partial<Order> = { status };
   if (notes !== undefined) payload.notes = notes;
   await setDoc(docRef, payload, { merge: true });
@@ -381,7 +509,7 @@ export async function updateOrderStatusInFirestore(
 export async function saveSettingsToFirestore(
   settings: BoutiqueSettings
 ): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.CONFIG, DOCS.SETTINGS);
+  const docRef = doc(activeDb, COLLECTIONS.CONFIG, DOCS.SETTINGS);
   await setDoc(docRef, settings, { merge: true });
 }
 
@@ -389,7 +517,7 @@ export async function saveSettingsToFirestore(
  * Guarda la configuración del popup de promoción
  */
 export async function savePromoToFirestore(promo: PromoConfig): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.CONFIG, DOCS.PROMO);
+  const docRef = doc(activeDb, COLLECTIONS.CONFIG, DOCS.PROMO);
   await setDoc(docRef, promo, { merge: true });
 }
 
@@ -399,7 +527,7 @@ export async function savePromoToFirestore(promo: PromoConfig): Promise<void> {
 export async function saveSocialPostsToFirestore(
   posts: SocialVideoPost[]
 ): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.CONFIG, DOCS.SOCIAL);
+  const docRef = doc(activeDb, COLLECTIONS.CONFIG, DOCS.SOCIAL);
   await setDoc(docRef, { posts, updatedAt: new Date().toISOString() });
 }
 
@@ -409,25 +537,81 @@ export async function saveSocialPostsToFirestore(
 export async function saveMovementToFirestore(
   movement: InventoryMovement
 ): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.MOVEMENTS, movement.id);
+  const docRef = doc(activeDb, COLLECTIONS.MOVEMENTS, movement.id);
   await setDoc(docRef, movement);
+}
+
+/**
+ * Función para reemplazar completamente la colección de productos en Firestore con una nueva lista oficial
+ */
+export async function replaceAllProductsInFirestore(
+  products: Product[] = INITIAL_PRODUCTS,
+  database: Firestore = activeDb
+): Promise<void> {
+  try {
+    const colRef = collection(database, COLLECTIONS.PRODUCTS);
+    const snapshot = await getDocs(colRef);
+
+    // Eliminar documentos obsoletos existentes
+    if (!snapshot.empty) {
+      const deleteBatch = writeBatch(database);
+      snapshot.forEach((docSnap) => {
+        deleteBatch.delete(docSnap.ref);
+      });
+      await deleteBatch.commit();
+      console.log(`[Firebase] Eliminados ${snapshot.size} productos anteriores de Firestore.`);
+    }
+
+    // Escribir los nuevos productos oficiales en lotes
+    const insertBatch = writeBatch(database);
+    products.forEach((prod) => {
+      const ref = doc(database, COLLECTIONS.PRODUCTS, prod.id);
+      insertBatch.set(ref, prod);
+    });
+    await insertBatch.commit();
+    console.log(`[Firebase] ✅ ${products.length} productos oficiales guardados en Firestore.`);
+  } catch (error) {
+    console.warn('[Firebase] Error al reemplazar catálogo de productos:', error);
+    throw error;
+  }
+}
+
+/**
+ * Consulta y devuelve el catálogo de productos actualizado directamente desde Firestore
+ */
+export async function fetchProductsFromFirestore(
+  database: Firestore = activeDb
+): Promise<Product[]> {
+  try {
+    const colRef = collection(database, COLLECTIONS.PRODUCTS);
+    const snapshot = await getDocs(colRef);
+    if (snapshot.empty) {
+      console.log('[Firebase] Colección vacía al consultar fetchProductsFromFirestore. Sembrando...');
+      await replaceAllProductsInFirestore(INITIAL_PRODUCTS, database);
+      return INITIAL_PRODUCTS;
+    }
+    const list: Product[] = [];
+    snapshot.forEach((docSnap) => {
+      list.push(normalizeProductData(docSnap.id, docSnap.data()));
+    });
+    return list;
+  } catch (err) {
+    console.warn('[Firebase] Error en fetchProductsFromFirestore:', err);
+    return INITIAL_PRODUCTS;
+  }
 }
 
 /**
  * Función de siembra inicial de productos en Firestore
  */
-export async function seedInitialProducts(): Promise<void> {
+export async function seedInitialProducts(database: Firestore = activeDb): Promise<void> {
   try {
-    const batch = writeBatch(db);
-    INITIAL_PRODUCTS.forEach((prod) => {
-      const ref = doc(db, COLLECTIONS.PRODUCTS, prod.id);
-      batch.set(ref, prod);
-    });
-    await batch.commit();
-    console.log('✅ Catálogo inicial sembrado con éxito en Firestore');
+    await replaceAllProductsInFirestore(INITIAL_PRODUCTS, database);
+    console.log('[Firebase] ✅ Catálogo inicial sembrado con éxito en Firestore');
   } catch (error) {
-    console.error('Error al sembrar productos iniciales en Firestore:', error);
+    console.warn('[Firebase] Error al sembrar productos iniciales en Firestore:', error);
   }
 }
+
 
 

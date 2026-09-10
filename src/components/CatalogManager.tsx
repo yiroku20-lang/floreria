@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   RotateCcw,
   Crop,
+  RefreshCw,
+  Cloud,
 } from 'lucide-react';
 import { Product, PromoConfig } from '../types';
 import { ImageFramingModal } from './ImageFramingModal';
@@ -28,6 +30,11 @@ import {
   analyzeImageUrl,
   BOUTIQUE_FALLBACK_IMAGE,
 } from '../utils/driveUtils';
+import {
+  saveAllProductsToFirestore,
+  replaceAllProductsInFirestore,
+  seedInitialProducts,
+} from '../lib/firebase';
 
 interface CatalogManagerProps {
   products: Product[];
@@ -88,6 +95,26 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
 
   // Zoom Lightbox
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+
+  // Firestore Sync State
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+
+  const handleSyncFirestore = async () => {
+    setSyncStatus('syncing');
+    try {
+      if (products.length > 0) {
+        await replaceAllProductsInFirestore(products);
+      } else {
+        await seedInitialProducts();
+      }
+      setSyncStatus('success');
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    } catch (e) {
+      console.error('Error al sincronizar con Firestore:', e);
+      setSyncStatus('error');
+      setTimeout(() => setSyncStatus('idle'), 4000);
+    }
+  };
 
   // Analysis for product image
   const productImageAnalysis = analyzeImageUrl(imageUrl);
@@ -790,8 +817,33 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                 </p>
               </div>
 
-              {/* Filters */}
-              <div className="flex items-center gap-2">
+              {/* Filters & Actions */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSyncFirestore}
+                  disabled={syncStatus === 'syncing'}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer ${
+                    syncStatus === 'success'
+                      ? 'bg-emerald-600 text-white'
+                      : syncStatus === 'error'
+                      ? 'bg-rose-600 text-white'
+                      : 'bg-[#5C715E] text-white hover:bg-[#4A5D4C]'
+                  } disabled:opacity-50`}
+                  title="Sube y sincroniza todos los productos actuales con la base de datos de Firebase"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                  <span>
+                    {syncStatus === 'syncing'
+                      ? 'Sincronizando...'
+                      : syncStatus === 'success'
+                      ? '¡Sincronizado!'
+                      : syncStatus === 'error'
+                      ? 'Error al conectar'
+                      : 'Sincronizar con Firestore'}
+                  </span>
+                </button>
+
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -799,7 +851,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                     placeholder="Buscar por nombre..."
                     value={tableSearch}
                     onChange={(e) => setTableSearch(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] w-40 sm:w-48"
+                    className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] w-36 sm:w-44"
                   />
                 </div>
 

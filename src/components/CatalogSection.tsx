@@ -59,17 +59,17 @@ export const OFFICIAL_CATEGORIES: CategoryInfo[] = [
     name: 'Amor Eterno',
     label: 'Amor Eterno',
     icon: InfinityIcon,
-    tagline: 'Flores 100% Preservadas que Duran Años',
+    tagline: 'Flores de Amor Incondicional, Gratitud & Pasión',
     description:
-      'Rosas eternas naturales encapsuladas en cúpulas de cristal finas y cofres joyeros que conservan su belleza por años sin marchitar.',
+      'Diseños que celebran el amor en todas sus expresiones: boxes botánicos con rosas de exportación, girasoles y canastas románticas.',
   },
   {
     name: 'Primavera Para Ti',
     label: 'Primavera Para Ti',
     icon: Flower2,
-    tagline: 'Tulipanes Holandeses & Frescura',
+    tagline: 'Frescura Campestre & Ternura Botánica',
     description:
-      'Vivacidad botánica, tulipanes de importación y mixturas florales campestres frescas para iluminar cualquier espacio.',
+      'Vivacidad andina y silvestres con canastas de crisantemos, girasoles y boxes en tonalidades pastel que transmiten alegría.',
   },
 ];
 

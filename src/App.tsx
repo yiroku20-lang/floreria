@@ -24,6 +24,7 @@ import {
   savePromoToFirestore,
   saveSocialPostsToFirestore,
   saveMovementToFirestore,
+  fetchProductsFromFirestore,
 } from './lib/firebase';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
@@ -40,9 +41,27 @@ import { FloatingActions } from './components/FloatingActions';
 export default function App() {
   // State with LocalStorage fallbacks and real-time Firestore sync
   const [products, setProducts] = useState<Product[]>(() => {
-    const saved = safeGetStorage<Product[]>('rosanfer_products', INITIAL_PRODUCTS);
+    // Purgar caché obsoleta previa para garantizar que ningún cliente retenga datos antiguos de prueba
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('rosanfer_products');
+      }
+    } catch {
+      // Sandbox fallback
+    }
+
+    const saved = safeGetStorage<Product[]>('rosanfer_products_v2', []);
     if (Array.isArray(saved) && saved.length > 0) {
-      return saved;
+      // Filtrar residuos antiguos si existieran
+      const isOutdated = saved.some(
+        (p) =>
+          p.name?.includes('Cúpula de Rosa Preservada') ||
+          p.name?.includes('Cofre Botánico') ||
+          p.name?.includes('Explosión Festiva')
+      );
+      if (!isOutdated) {
+        return saved;
+      }
     }
     return INITIAL_PRODUCTS;
   });
@@ -90,7 +109,7 @@ export default function App() {
       (cloudProducts) => {
         if (cloudProducts && cloudProducts.length > 0) {
           setProducts(cloudProducts);
-          safeSetStorage('rosanfer_products', cloudProducts);
+          safeSetStorage('rosanfer_products_v2', cloudProducts);
         }
         setIsCloudConnected(true);
       },
@@ -164,7 +183,7 @@ export default function App() {
 
   // Sync to localStorage
   useEffect(() => {
-    safeSetStorage('rosanfer_products', products);
+    safeSetStorage('rosanfer_products_v2', products);
   }, [products]);
 
   useEffect(() => {
@@ -386,6 +405,25 @@ export default function App() {
     }
   };
 
+  const handleReloadProductsFromCloud = async (): Promise<Product[]> => {
+    try {
+      const fresh = await fetchProductsFromFirestore();
+      if (fresh && fresh.length > 0) {
+        setProducts(fresh);
+        safeSetStorage('rosanfer_products_v2', fresh);
+        return fresh;
+      }
+    } catch (e) {
+      console.warn('Error al recargar productos desde Firestore:', e);
+    }
+    return products;
+  };
+
+  const handleSetProducts = (newProducts: Product[]) => {
+    setProducts(newProducts);
+    safeSetStorage('rosanfer_products_v2', newProducts);
+  };
+
   // Settings & Promo mutations with Firestore sync
   const handleUpdateSettings = async (newSettings: BoutiqueSettings) => {
     setSettings(newSettings);
@@ -530,6 +568,8 @@ export default function App() {
         onUpdateSocialPosts={handleUpdateSocialPosts}
         settings={settings}
         onUpdateSettings={handleUpdateSettings}
+        onReloadProductsFromCloud={handleReloadProductsFromCloud}
+        onSetProducts={handleSetProducts}
       />
     </div>
   );

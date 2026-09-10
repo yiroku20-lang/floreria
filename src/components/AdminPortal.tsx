@@ -36,6 +36,8 @@ import {
   db,
   firebaseConfig,
   saveAllProductsToFirestore,
+  replaceAllProductsInFirestore,
+  fetchProductsFromFirestore,
   seedInitialProducts,
 } from '../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
@@ -72,6 +74,8 @@ interface AdminPortalProps {
   onUpdateSocialPosts: (posts: SocialVideoPost[]) => void;
   settings: BoutiqueSettings;
   onUpdateSettings: (settings: BoutiqueSettings) => void;
+  onReloadProductsFromCloud?: () => Promise<Product[]>;
+  onSetProducts?: (prods: Product[]) => void;
 }
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
@@ -93,6 +97,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onUpdateSocialPosts,
   settings,
   onUpdateSettings,
+  onReloadProductsFromCloud,
+  onSetProducts,
 }) => {
   // Authentication State
   const [session, setSession] = useState<AdminSession | null>(() => {
@@ -149,10 +155,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   const handleSyncAllToFirebase = async () => {
     setIsSyncing(true);
-    setSyncStatus('Sincronizando catálogo completo con Firebase...');
+    setSyncStatus('Asegurando catálogo oficial en Firebase Firestore...');
     try {
-      await saveAllProductsToFirestore(products);
-      setSyncStatus(`¡Éxito! ${products.length} productos sincronizados con Firebase.`);
+      await replaceAllProductsInFirestore(products);
+      safeSetStorage('rosanfer_products_v2', products);
+      setSyncStatus(`¡Éxito! ${products.length} productos oficiales asegurados en Firebase.`);
     } catch (err: any) {
       setSyncStatus(`Aviso al sincronizar: ${err?.message || 'Revisa tu conexión'}`);
     } finally {
@@ -161,8 +168,32 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
-  const handleReloadFromFirebase = () => {
-    window.location.reload();
+  const handleReloadFromFirebase = async () => {
+    setIsSyncing(true);
+    setSyncStatus('Consultando catálogo oficial directamente desde Firestore...');
+    try {
+      let freshProducts: Product[] = [];
+      if (onReloadProductsFromCloud) {
+        freshProducts = await onReloadProductsFromCloud();
+      } else {
+        freshProducts = await fetchProductsFromFirestore();
+        if (onSetProducts && freshProducts.length > 0) {
+          onSetProducts(freshProducts);
+        }
+      }
+      safeSetStorage('rosanfer_products_v2', freshProducts);
+      setSyncStatus(`✅ Catálogo recargado: ${freshProducts.length} productos sincronizados desde la nube.`);
+      setTestResult({
+        count: freshProducts.length,
+        sample: freshProducts.slice(0, 5).map((p) => p.name),
+        dbId: firebaseConfig.firestoreDatabaseId,
+      });
+    } catch (err: any) {
+      setSyncStatus(`⚠️ Error al recargar desde Firebase: ${err?.message || 'Error de conexión'}`);
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatus(null), 5000);
+    }
   };
 
   if (!isOpen) return null;
