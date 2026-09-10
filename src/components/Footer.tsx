@@ -20,8 +20,8 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
               <RosanferLogo size="md" variant="horizontal" light />
             </div>
             <p className="text-xs text-[#FBF9F6]/70 leading-relaxed font-light">
-              Boutique floral dedicada al arte del diseño botánico. Seleccionamos tulipanes holandeses,
-              rosas de autor y flores de estación para crear momentos memorables.
+              Boutique floral dedicada al arte del diseño botánico. Seleccionamos rosas de exportación,
+              girasoles andinos y flores frescas de estación para crear momentos memorables en Cusco.
             </p>
             <div className="flex items-center gap-2 pt-2">
               <span className="text-[11px] text-[#D49A89] font-serif-boutique italic">

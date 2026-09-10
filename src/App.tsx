@@ -470,7 +470,7 @@ export default function App() {
         whatsappNumber={settings.whatsappNumber}
       />
 
-      {/* Hero Banner with progressive scroll blur and tulip slides */}
+      {/* Hero Banner with progressive scroll blur and boutique collection slides */}
       <HeroBanner onSelectCategory={setActiveCategory} />
 
       {/* Main Catalog Section */}

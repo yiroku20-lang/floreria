@@ -152,7 +152,7 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
           Nuestras 6 Colecciones Principales
         </h2>
         <p className="mt-2 text-sm sm:text-base text-[#2C362D]/75 font-light leading-relaxed">
-          Diseños de autor para cada emoción: festivos, romance en flor, graduaciones, bodas de ensueño, flores eternas y tulipanes de primavera con entrega puntual en todo Cusco.
+          Diseños de autor para cada emoción: festivos, romance en flor, graduaciones de honor, bodas de ensueño, amor eterno y frescura primaveral con entrega puntual en todo Cusco.
         </p>
       </div>
 

@@ -48,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { label: 'Graduación', value: 'Graduación', hint: 'Colaciones & Títulos' },
     { label: 'Set Nupcial "Sí Acepto"', value: 'Set Nupcial "Sí Acepto"', hint: 'Bodas en Cusco' },
     { label: 'Amor Eterno', value: 'Amor Eterno', hint: 'Flores Preservadas' },
-    { label: 'Primavera Para Ti', value: 'Primavera Para Ti', hint: 'Tulipanes & Frescas' },
+    { label: 'Primavera Para Ti', value: 'Primavera Para Ti', hint: 'Girasoles & Campo' },
   ];
 
   return (

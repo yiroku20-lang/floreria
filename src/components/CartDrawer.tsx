@@ -280,7 +280,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       Tu carrito está vacío
                     </p>
                     <p className="mt-1 text-xs text-[#2C362D]/60 max-w-xs mx-auto">
-                      Explora nuestros arreglos florales, tulipanes holandeses y regalos boutique.
+                      Explora nuestros arreglos florales, rosas selectas, girasoles y regalos boutique.
                     </p>
                     <button
                       onClick={onClose}

@@ -338,7 +338,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                     <input
                       type="text"
                       required
-                      placeholder="Ej: Ramo de Tulipanes Cusco Imperial"
+                      placeholder="Ej: Bouquet Sol Andino & Rosas Rojas"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
@@ -363,7 +363,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                         <option value="Graduación">Graduación (Colaciones & Títulos)</option>
                         <option value="Set Nupcial &quot;Sí Acepto&quot;">Set Nupcial &quot;Sí Acepto&quot; (Bodas)</option>
                         <option value="Amor Eterno">Amor Eterno (Flores Preservadas)</option>
-                        <option value="Primavera Para Ti">Primavera Para Ti (Tulipanes & Frescas)</option>
+                        <option value="Primavera Para Ti">Primavera Para Ti (Girasoles & Silvestres)</option>
                       </select>
                     </div>
 
@@ -452,7 +452,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                         )}
                         {category === 'Primavera Para Ti' && (
                           <>
-                            {['Tulipanes Holandeses', 'Mix Silvestre', 'Dulce Amanecer'].map((tag) => (
+                            {['Girasoles Andinos', 'Mix Silvestre', 'Ovejitas Campestres'].map((tag) => (
                               <button
                                 key={tag}
                                 type="button"
@@ -1114,7 +1114,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                       <option value="Graduación">Graduación (Colaciones)</option>
                       <option value="Set Nupcial &quot;Sí Acepto&quot;">Set Nupcial &quot;Sí Acepto&quot; (Bodas)</option>
                       <option value="Amor Eterno">Amor Eterno (Flores Preservadas)</option>
-                      <option value="Primavera Para Ti">Primavera Para Ti (Tulipanes & Frescas)</option>
+                      <option value="Primavera Para Ti">Primavera Para Ti (Girasoles & Silvestres)</option>
                     </select>
                   </div>
 

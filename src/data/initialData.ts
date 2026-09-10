@@ -422,8 +422,8 @@ export const INITIAL_MOVEMENTS: InventoryMovement[] = [
 export const INITIAL_PROMO: PromoConfig = {
   isEnabled: true,
   title: '¡Llegó la Temporada de Flores Amarillas!',
-  subtitle: 'Celebra este mes de septiembre con nuestros exclusivos ramos de girasoles, rosas amarillas y tulipanes dorados en Cusco. ¡Regala luz, alegría y amor!',
-  badge: '🌻 Especial Septiembre - Flores Amarillas',
+  subtitle: 'Celebra este mes con nuestros exclusivos ramos de girasoles andinos, rosas de exportación y flores selectas en Cusco. ¡Regala luz, alegría y amor!',
+  badge: '🌻 Especial Temporada - Flores Amarillas',
   driveImageUrl: 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=1200&q=80',
   ctaText: 'Ver Flores Amarillas',
   categoryRedirect: 'Festivos',
@@ -474,8 +474,8 @@ export const INITIAL_SOCIAL_POSTS: SocialVideoPost[] = [
   {
     id: 'social-3',
     platform: 'tiktok',
-    title: 'Llegaron Tulipanes Holandeses y Girasoles Gigantes 🌻🌷',
-    description: 'Combinación primaveral en bases de cerámica artesanal con lazo de lino. ¿Cuál es tu color favorito? #TulipanesCusco #Girasoles #Rosanfer',
+    title: 'Llegaron Girasoles Gigantes y Rosas de Exportación 🌻🌹',
+    description: 'Combinación primaveral en bases de cerámica artesanal con lazo de lino. ¿Cuál es tu favorito? #GirasolesCusco #Rosas #Rosanfer',
     url: 'https://www.tiktok.com/@rosanfer14/video/7350123456789012347',
     videoId: '7350123456789012347',
     thumbnailUrl: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?auto=format&fit=crop&w=800&q=80',
