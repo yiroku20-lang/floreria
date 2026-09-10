@@ -339,16 +339,19 @@ export function subscribeToSettings(
         const fromCache = snapshot.metadata.fromCache;
         if (snapshot.exists()) {
           const data = snapshot.data() as BoutiqueSettings;
-          // Auto-actualizar si tiene los números de contacto/pago anteriores
+          // Auto-actualizar si tiene los números de contacto/pago anteriores o la tarifa de 12 previa a la promoción
           if (
             data.whatsappNumber === '51989415220' ||
             data.yapeNumber === '989 415 220' ||
-            data.yapeNumber === '989415220'
+            data.yapeNumber === '989415220' ||
+            data.defaultDeliveryFee === 12 ||
+            data.defaultDeliveryFee === 12.0
           ) {
             const updated: BoutiqueSettings = {
               ...data,
               whatsappNumber: '51906800626',
               yapeNumber: '961 203 577',
+              defaultDeliveryFee: 0,
               bcpAccount: '',
               interbankAccount: '',
             };

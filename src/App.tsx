@@ -502,6 +502,9 @@ export default function App() {
         onSearchChange={setSearchQuery}
         searchQuery={searchQuery}
         whatsappNumber={settings.whatsappNumber}
+        products={products}
+        onSelectProduct={(prod) => setSelectedProductDetail(prod)}
+        onAddToCart={handleAddToCart}
       />
 
       {/* Hero Banner with progressive scroll blur and boutique collection slides */}

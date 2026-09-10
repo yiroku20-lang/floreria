@@ -104,8 +104,8 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
   const filteredProducts = useMemo(() => {
     let list = [...products];
 
-    // Main Category filter
-    if (activeCategory !== 'Todos') {
+    // Main Category filter (applies if selected, unless user is searching globally)
+    if (activeCategory !== 'Todos' && !searchQuery.trim()) {
       list = list.filter(
         (p) => p.category === activeCategory || p.occasion === activeCategory
       );

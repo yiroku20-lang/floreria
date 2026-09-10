@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Search, Menu, X, ShieldCheck, Phone, Sparkles, Lock } from 'lucide-react';
 import { RosanferLogo } from './RosanferLogo';
+import { Product } from '../types';
+import { SmartSearchDropdown } from './SmartSearchDropdown';
 
 interface NavbarProps {
   cartCount: number;
@@ -11,6 +13,9 @@ interface NavbarProps {
   onSearchChange: (query: string) => void;
   searchQuery: string;
   whatsappNumber: string;
+  products: Product[];
+  onSelectProduct: (product: Product) => void;
+  onAddToCart?: (product: Product, quantity?: number) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,10 +27,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   searchQuery,
   whatsappNumber,
+  products,
+  onSelectProduct,
+  onAddToCart,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,11 +47,49 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle outside click to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        desktopSearchRef.current &&
+        !desktopSearchRef.current.contains(target) &&
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(target)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const scrollToSection = (id: string) => {
     const elem = document.getElementById(id);
     if (elem) {
       elem.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleSearchChange = (value: string) => {
+    onSearchChange(value);
+    setIsDropdownOpen(true);
+    if (value.trim().length > 0 && activeCategory !== 'Todos') {
+      onSelectCategory('Todos');
+    }
+  };
+
+  const handleViewAllInCatalog = () => {
+    setIsDropdownOpen(false);
+    scrollToSection('catalogo-section');
+  };
+
+  const handleSelectSuggestion = (text: string) => {
+    onSearchChange(text);
+    if (activeCategory !== 'Todos') {
+      onSelectCategory('Todos');
+    }
+    setIsDropdownOpen(true);
   };
 
   const officialCollections = [
@@ -158,24 +208,34 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Right: Uncluttered Icon Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Expandable / Compact Search */}
-            <div className="relative flex items-center">
+            <div ref={desktopSearchRef} className="relative flex items-center">
               {isSearchExpanded ? (
-                <div className="flex items-center bg-white border border-[#5C715E]/25 rounded-full pl-3 pr-2 py-1 shadow-xs transition-all w-48 sm:w-60">
+                <div className="flex items-center bg-white border border-[#5C715E]/25 rounded-full pl-3 pr-2 py-1 shadow-xs transition-all w-52 sm:w-72">
                   <Search className="w-3.5 h-3.5 text-[#5C715E]" />
                   <input
                     type="text"
-                    placeholder="Buscar arreglo, flor..."
+                    placeholder="Buscar arreglo, flor, ocasión..."
                     value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
+                    onFocus={() => setIsDropdownOpen(true)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleViewAllInCatalog();
+                      } else if (e.key === 'Escape') {
+                        setIsDropdownOpen(false);
+                        setIsSearchExpanded(false);
+                      }
+                    }}
                     autoFocus
                     className="w-full px-2 text-xs text-[#2C362D] bg-transparent focus:outline-none"
                   />
                   <button
                     onClick={() => {
                       setIsSearchExpanded(false);
+                      setIsDropdownOpen(false);
                       onSearchChange('');
                     }}
-                    className="text-xs text-gray-400 hover:text-gray-600 p-0.5"
+                    className="text-xs text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
                     title="Cerrar búsqueda"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -184,12 +244,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   id="btn-search-expand"
-                  onClick={() => setIsSearchExpanded(true)}
-                  className="hidden md:flex items-center gap-1.5 text-xs text-[#2C362D]/70 hover:text-[#5C715E] p-2 rounded-full hover:bg-[#5C715E]/10 transition-colors"
+                  onClick={() => {
+                    setIsSearchExpanded(true);
+                    setIsDropdownOpen(true);
+                  }}
+                  className="hidden md:flex items-center gap-1.5 text-xs text-[#2C362D]/70 hover:text-[#5C715E] p-2 rounded-full hover:bg-[#5C715E]/10 transition-colors cursor-pointer"
                   title="Buscar en el catálogo"
                 >
                   <Search className="w-4 h-4" />
                 </button>
+              )}
+
+              {/* Desktop Smart Dropdown */}
+              {isSearchExpanded && (
+                <SmartSearchDropdown
+                  query={searchQuery}
+                  products={products}
+                  isOpen={isDropdownOpen}
+                  onClose={() => setIsDropdownOpen(false)}
+                  onSelectProduct={onSelectProduct}
+                  onAddToCart={onAddToCart}
+                  onViewAllInCatalog={handleViewAllInCatalog}
+                  onSelectSuggestion={handleSelectSuggestion}
+                  whatsappNumber={whatsappNumber}
+                />
               )}
             </div>
 
@@ -242,27 +320,51 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Mobile Search Input dropdown when opened */}
         {isSearchExpanded && (
-          <div className="p-3 border-t border-[#5C715E]/10 bg-[#FBF9F6] md:hidden">
-            <div className="relative flex items-center bg-white rounded-full border border-[#5C715E]/30 px-3 py-1.5">
+          <div ref={mobileSearchRef} className="p-3 border-t border-[#5C715E]/10 bg-[#FBF9F6] md:hidden">
+            <div className="relative flex items-center bg-white rounded-full border border-[#5C715E]/30 px-3 py-1.5 shadow-xs">
               <Search className="w-4 h-4 text-[#5C715E] mr-2" />
               <input
                 type="text"
                 placeholder="Buscar por ocasión, flor o detalle..."
                 value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
+                onFocus={() => setIsDropdownOpen(true)}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleViewAllInCatalog();
+                  } else if (e.key === 'Escape') {
+                    setIsDropdownOpen(false);
+                    setIsSearchExpanded(false);
+                  }
+                }}
                 autoFocus
                 className="w-full text-xs text-[#2C362D] focus:outline-none"
               />
               <button
                 onClick={() => {
                   setIsSearchExpanded(false);
+                  setIsDropdownOpen(false);
                   onSearchChange('');
                 }}
-                className="text-gray-400 p-1"
+                className="text-gray-400 p-1 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
+
+            {/* Mobile Smart Dropdown */}
+            <SmartSearchDropdown
+              query={searchQuery}
+              products={products}
+              isOpen={isDropdownOpen}
+              onClose={() => setIsDropdownOpen(false)}
+              onSelectProduct={onSelectProduct}
+              onAddToCart={onAddToCart}
+              onViewAllInCatalog={handleViewAllInCatalog}
+              onSelectSuggestion={handleSelectSuggestion}
+              whatsappNumber={whatsappNumber}
+              isMobile={true}
+            />
           </div>
         )}
       </header>

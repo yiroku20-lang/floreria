@@ -341,7 +341,7 @@ export const INITIAL_SETTINGS: BoutiqueSettings = {
   storeAddress: 'Atención Exclusiva con Envío a Domicilio en todo Cusco',
   storeCity: 'Cusco, Perú',
   openingHours: 'Lunes a Sábado: 8:00 AM - 8:30 PM | Domingo: 8:30 AM - 3:00 PM',
-  defaultDeliveryFee: 12.0,
+  defaultDeliveryFee: 0.0, // Promoción: Cada pedido incluye el delivery dentro de la ciudad de Cusco
   yapeNumber: '961 203 577',
   yapeHolder: 'Rosanfer Florería / Andrea V.',
   bcpAccount: '',

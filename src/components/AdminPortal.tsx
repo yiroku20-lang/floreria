@@ -562,6 +562,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       onChange={(e) => setDeliveryFee(parseFloat(e.target.value) || 0)}
                       className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                     />
+                    <p className="text-[10px] text-emerald-700 mt-1 font-medium">
+                      * Promoción activa: fijado en S/. 0.00 (Envío a domicilio incluido dentro de la ciudad de Cusco en cada pedido).
+                    </p>
                   </div>
                 </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Trash2,
@@ -23,9 +23,19 @@ import {
   Smartphone,
   AlertTriangle,
   Wallet,
+  Sparkles,
+  Info,
 } from 'lucide-react';
 import { CartItem, DeliveryType, Order, DedicationCard, PromoConfig, BoutiqueSettings } from '../types';
 import { formatCurrency, transformDriveUrl } from '../utils/driveUtils';
+import {
+  getPeruTime,
+  getAvailableSlots,
+  SLOT_MORNING,
+  SLOT_AFTERNOON,
+  SLOT_ALL_DAY,
+  PeruTimeData,
+} from '../utils/deliveryTimeUtils';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -61,11 +71,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   // Step 1: Cart Items / Step 2: Checkout Form / Step 3: Confirmation
   const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart');
 
-  // Dates
-  const todayStr = new Date().toISOString().split('T')[0];
-  const tomorrowDate = new Date();
-  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-  const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+  // Horario inteligente en Cusco (America/Lima)
+  const [timeData, setTimeData] = useState<PeruTimeData>(getPeruTime);
+
+  // Recalcular hora en tiempo real al abrir el carrito o cada 30 segundos
+  useEffect(() => {
+    if (!isOpen) return;
+    const updateTime = () => {
+      const fresh = getPeruTime();
+      setTimeData(fresh);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 30000);
+    return () => clearInterval(interval);
+  }, [isOpen]);
+
+  const todayStr = timeData.todayDateStr;
+  const tomorrowStr = timeData.tomorrowDateStr;
+
+  // Selección inicial adaptativa: si hoy ya está cerrado (>= 14:00 hrs), arranca en 'tomorrow'
+  const initialDateOption = timeData.isSameDayAllowed ? 'today' : 'tomorrow';
+  const initialSelectedDate = timeData.isSameDayAllowed ? todayStr : tomorrowStr;
+  const initialDeliveryDate = timeData.isSameDayAllowed
+    ? `Hoy (${todayStr})`
+    : `Mañana (${tomorrowStr})`;
+  const initialSlot = timeData.isSameDayAllowed
+    ? (timeData.availableSlotsToday[0] || SLOT_AFTERNOON)
+    : SLOT_MORNING;
 
   // Customer Form State
   const [customerName, setCustomerName] = useState('');
@@ -74,12 +106,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [address, setAddress] = useState('');
   const [district, setDistrict] = useState('Wanchaq');
   const [reference, setReference] = useState('');
-  const [dateOption, setDateOption] = useState<'today' | 'tomorrow' | 'custom'>('today');
-  const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [deliveryDate, setDeliveryDate] = useState(`Hoy (${todayStr})`);
-  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState('Tarde (14:00 - 19:00)');
+  const [dateOption, setDateOption] = useState<'today' | 'tomorrow' | 'custom'>(initialDateOption);
+  const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
+  const [deliveryDate, setDeliveryDate] = useState(initialDeliveryDate);
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState(initialSlot);
   const [paymentMethod, setPaymentMethod] = useState('Yape o Plin');
   const [notes, setNotes] = useState('');
+
+  // Sincronizar automáticamente turnos y opciones válidas si cambia el reloj
+  useEffect(() => {
+    if (dateOption === 'today') {
+      if (!timeData.isSameDayAllowed) {
+        setDateOption('tomorrow');
+        setSelectedDate(tomorrowStr);
+        setDeliveryDate(`Mañana (${tomorrowStr})`);
+        setDeliveryTimeSlot(SLOT_MORNING);
+        return;
+      }
+
+      // Si el turno actual seleccionado ya no es válido para hoy, conmutar al primero válido
+      const validSlots = timeData.availableSlotsToday;
+      if (!validSlots.includes(deliveryTimeSlot)) {
+        if (validSlots.length > 0) {
+          setDeliveryTimeSlot(validSlots[0]);
+        }
+      }
+    }
+  }, [timeData, dateOption, deliveryTimeSlot, tomorrowStr]);
 
   // Dedication Card
   const [cardEnabled, setCardEnabled] = useState(false);
@@ -115,7 +168,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   // Financial calculations
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const deliveryFee = deliveryType === 'delivery' ? defaultDeliveryFee : 0;
+  // Promoción vigente: Cada pedido incluye el delivery dentro de la ciudad de Cusco
+  const isCuscoDeliveryIncluded = true;
+  const deliveryFee = deliveryType === 'delivery' ? (isCuscoDeliveryIncluded ? 0 : defaultDeliveryFee) : 0;
   const total = subtotal + deliveryFee;
 
   const handleProceedToCheckout = () => {
@@ -134,6 +189,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     if (deliveryType === 'delivery' && !address.trim()) {
       alert('Por favor ingresa la dirección de entrega.');
       return;
+    }
+
+    // Validación inteligente de horario según el reloj del taller en Cusco
+    const currentPeru = getPeruTime();
+    const isToday =
+      dateOption === 'today' ||
+      (dateOption === 'custom' && selectedDate === currentPeru.todayDateStr);
+
+    if (isToday) {
+      if (!currentPeru.isSameDayAllowed) {
+        alert(
+          '⏰ Estimado cliente: los pedidos con entrega para hoy están cerrados por tiempo de elaboración artesanal (después de las 14:00 hrs en Cusco). Tu pedido se programará a partir de mañana.'
+        );
+        setDateOption('tomorrow');
+        setSelectedDate(currentPeru.tomorrowDateStr);
+        setDeliveryDate(`Mañana (${currentPeru.tomorrowDateStr})`);
+        setDeliveryTimeSlot(SLOT_MORNING);
+        return;
+      }
+
+      if (deliveryTimeSlot.includes('Mañana') && !currentPeru.isMorningSlotAllowedToday) {
+        alert(
+          `⏰ Estimado cliente: por la hora del pedido (${currentPeru.formattedTime} en Cusco), el turno Mañana ya está en ruta o concluido. Tu arreglo será entregado hoy en el turno Tarde (14:00 - 19:00).`
+        );
+        setDeliveryTimeSlot(SLOT_AFTERNOON);
+        return;
+      }
     }
 
     const orderNumber = `RF-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -214,7 +296,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     messageText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     messageText += `*Subtotal:* ${formatCurrency(subtotal)}\n`;
-    messageText += `*Costo de Envío:* ${formatCurrency(deliveryFee)}\n`;
+    messageText += `*Costo de Envío:* ¡GRATIS! (Promoción: Delivery incluido dentro de la ciudad de Cusco)\n`;
     if (notes.trim()) {
       messageText += `📝 *Observaciones:* ${notes}\n`;
     }
@@ -374,9 +456,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <span>Subtotal de flores:</span>
                       <span className="font-semibold text-[#2C362D]">{formatCurrency(subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-[#5C715E]">
-                      <span>Envío a Domicilio:</span>
-                      <span>Se calcula en el siguiente paso</span>
+                    <div className="flex justify-between items-center text-emerald-700">
+                      <span className="flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Envío en Ciudad de Cusco:</span>
+                      </span>
+                      <span className="font-bold text-[11px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                        ¡Incluido por Promoción!
+                      </span>
                     </div>
                   </div>
 
@@ -416,20 +503,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label className="block text-xs font-bold text-[#5C715E] uppercase tracking-wider mb-2">
                     Tipo de Entrega
                   </label>
-                  <div className="p-3.5 rounded-2xl border border-[#5C715E] bg-[#5C715E]/10 text-[#2C362D] flex items-center justify-between gap-3">
+                  <div className="p-3.5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-50/70 text-[#2C362D] flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#5C715E] text-white flex items-center justify-center shrink-0 shadow-xs">
-                        <Truck className="w-4 h-4" />
+                      <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Truck className="w-5 h-5" />
                       </div>
                       <div>
-                        <span className="font-bold text-xs block text-[#2C362D]">Envío a Domicilio en todo Cusco</span>
-                        <span className="text-[11px] text-[#2C362D]/70 block">
-                          Tarifa estándar {formatCurrency(defaultDeliveryFee)} (Entrega puntual a la puerta)
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-xs block text-[#2C362D]">Envío a Domicilio en todo Cusco</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white px-2 py-0.5 rounded-full">
+                            ¡Promoción Activa!
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-emerald-900/90 font-medium block mt-0.5">
+                          Por promoción, cada pedido incluye el delivery dentro de la ciudad de Cusco
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#5C715E] text-white px-2.5 py-1 rounded-full shrink-0">
-                      100% Delivery
+                    <span className="text-xs font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs shrink-0">
+                      S/. 0.00
                     </span>
                   </div>
                 </div>
@@ -527,41 +619,88 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 )}
 
                 {/* Delivery Date & Time */}
-                <div className="bg-white p-4 rounded-2xl border border-[#5C715E]/15 space-y-3">
-                  <h4 className="text-xs font-bold text-[#5C715E] uppercase tracking-wider flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#D49A89]" />
-                    <span>Fecha y Turno de Entrega</span>
-                  </h4>
+                <div className="bg-white p-4 rounded-2xl border border-[#5C715E]/15 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-[#5C715E] uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#D49A89]" />
+                      <span>Fecha y Turno de Entrega</span>
+                    </h4>
+
+                    {/* Clock badge showing current local time in Cusco */}
+                    <div className="flex items-center gap-1 text-[11px] font-medium text-[#5C715E] bg-[#5C715E]/10 px-2 py-0.5 rounded-full">
+                      <Clock className="w-3 h-3" />
+                      <span>Cusco: {timeData.formattedTime}</span>
+                    </div>
+                  </div>
+
+                  {/* Informative status notice for artisanal preparation */}
+                  <div className="p-2.5 rounded-xl bg-[#FBF9F6] border border-[#5C715E]/15 flex items-start gap-2">
+                    <Info className="w-4 h-4 text-[#5C715E] shrink-0 mt-0.5" />
+                    <p className="text-[11px] leading-relaxed text-[#2C362D]/80">
+                      {dateOption === 'today'
+                        ? timeData.noticeMessage
+                        : 'Cada arreglo es elaborado a mano con flores frescas bajo pedido. Puedes programar la entrega para cualquier fecha y turno.'}
+                    </p>
+                  </div>
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-[#2C362D] mb-1.5">
-                        Día de Entrega *
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-medium text-[#2C362D]">
+                          Día de Entrega *
+                        </label>
+                        {!timeData.isSameDayAllowed && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            Entregas para hoy cerradas por horario
+                          </span>
+                        )}
+                      </div>
+
                       <div className="flex gap-2 mb-2">
+                        {/* Botón HOY con validación inteligente */}
                         <button
                           type="button"
+                          disabled={!timeData.isSameDayAllowed}
                           onClick={() => {
+                            if (!timeData.isSameDayAllowed) return;
                             setDateOption('today');
                             setSelectedDate(todayStr);
                             setDeliveryDate(`Hoy (${todayStr})`);
+                            if (timeData.availableSlotsToday.length > 0) {
+                              setDeliveryTimeSlot(timeData.availableSlotsToday[0]);
+                            }
                           }}
-                          className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
-                            dateOption === 'today'
-                              ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs'
-                              : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100'
+                          className={`flex-1 py-2 px-2 text-xs font-semibold rounded-xl border transition-all ${
+                            !timeData.isSameDayAllowed
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
+                              : dateOption === 'today'
+                              ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs cursor-pointer'
+                              : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100 cursor-pointer'
                           }`}
+                          title={
+                            !timeData.isSameDayAllowed
+                              ? 'Pedidos para hoy cerrados (a partir de las 14:00 hrs)'
+                              : 'Entrega para el día de hoy'
+                          }
                         >
                           Hoy
+                          {!timeData.isSameDayAllowed && (
+                            <span className="text-[10px] block font-normal text-gray-400">
+                              (Cerrado)
+                            </span>
+                          )}
                         </button>
+
+                        {/* Botón MAÑANA */}
                         <button
                           type="button"
                           onClick={() => {
                             setDateOption('tomorrow');
                             setSelectedDate(tomorrowStr);
                             setDeliveryDate(`Mañana (${tomorrowStr})`);
+                            setDeliveryTimeSlot(SLOT_MORNING);
                           }}
-                          className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                          className={`flex-1 py-2 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                             dateOption === 'tomorrow'
                               ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs'
                               : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100'
@@ -569,13 +708,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         >
                           Mañana
                         </button>
+
+                        {/* Botón OTRA FECHA */}
                         <button
                           type="button"
                           onClick={() => {
                             setDateOption('custom');
-                            setDeliveryDate(`Fecha programada: ${selectedDate}`);
+                            const targetDate = selectedDate === todayStr && !timeData.isSameDayAllowed ? tomorrowStr : selectedDate;
+                            setSelectedDate(targetDate);
+                            setDeliveryDate(`Fecha programada: ${targetDate}`);
                           }}
-                          className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                          className={`flex-1 py-2 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                             dateOption === 'custom'
                               ? 'bg-[#5C715E] text-white border-[#5C715E] shadow-xs'
                               : 'bg-[#FBF9F6] text-[#2C362D] border-gray-200 hover:bg-gray-100'
@@ -585,18 +728,34 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         </button>
                       </div>
 
+                      {/* Selector de fecha nativo (con fecha mínima bloqueada según disponibilidad) */}
                       <div className="relative">
                         <input
                           type="date"
-                          min={todayStr}
+                          min={timeData.isSameDayAllowed ? todayStr : tomorrowStr}
                           value={selectedDate}
                           onChange={(e) => {
                             const val = e.target.value;
                             if (!val) return;
+
+                            // Si eligió hoy pero hoy está cerrado, forzar mañana
+                            if (val === todayStr && !timeData.isSameDayAllowed) {
+                              setSelectedDate(tomorrowStr);
+                              setDateOption('tomorrow');
+                              setDeliveryDate(`Mañana (${tomorrowStr})`);
+                              alert(
+                                '⏰ Estimado cliente: los pedidos con entrega para hoy están cerrados. Tu fecha fue asignada para mañana.'
+                              );
+                              return;
+                            }
+
                             setSelectedDate(val);
                             if (val === todayStr) {
                               setDateOption('today');
                               setDeliveryDate(`Hoy (${val})`);
+                              if (timeData.availableSlotsToday.length > 0) {
+                                setDeliveryTimeSlot(timeData.availableSlotsToday[0]);
+                              }
                             } else if (val === tomorrowStr) {
                               setDateOption('tomorrow');
                               setDeliveryDate(`Mañana (${val})`);
@@ -611,18 +770,37 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-[#2C362D] mb-1">
-                        Turno de Horario *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-medium text-[#2C362D]">
+                          Turno de Horario *
+                        </label>
+                        {dateOption === 'today' && !timeData.isMorningSlotAllowedToday && timeData.isSameDayAllowed && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-medium border border-amber-200">
+                            Solo Turno Tarde disponible
+                          </span>
+                        )}
+                      </div>
+
                       <select
                         value={deliveryTimeSlot}
                         onChange={(e) => setDeliveryTimeSlot(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E]"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E] text-[#2C362D] font-medium"
                       >
-                        <option value="Mañana (09:00 - 13:00)">Mañana (09:00 - 13:00)</option>
-                        <option value="Tarde (14:00 - 19:00)">Tarde (14:00 - 19:00)</option>
-                        <option value="Todo el día">Cualquier hora</option>
+                        {getAvailableSlots(dateOption, selectedDate, timeData).map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
                       </select>
+
+                      {/* Explicación amigable si para hoy solo está disponible el turno tarde */}
+                      {dateOption === 'today' && !timeData.isMorningSlotAllowedToday && timeData.isSameDayAllowed && (
+                        <p className="mt-1.5 text-[11px] text-[#2C362D]/75 italic flex items-center gap-1">
+                          <span>
+                            ℹ️ Al ser más de las 09:00 hrs en Cusco ({timeData.formattedTime}), el turno mañana se encuentra en reparto. Tu pedido se confeccionará fresco para la tarde (14:00 - 19:00).
+                          </span>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -736,11 +914,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* Checkout Submission Button */}
               <div className="p-5 bg-white border-t border-[#5C715E]/15 space-y-3">
-                <div className="flex justify-between items-baseline text-xs">
-                  <span className="text-gray-500">Total a pagar:</span>
-                  <span className="text-xl font-serif-boutique font-bold text-[#5C715E]">
-                    {formatCurrency(total)}
-                  </span>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between text-gray-500">
+                    <span>Subtotal de flores:</span>
+                    <span className="font-medium text-[#2C362D]">{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-emerald-700">
+                    <span>Delivery en Ciudad de Cusco:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="line-through text-gray-400 text-[10px]">S/. 12.00</span>
+                      <span className="font-bold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px]">
+                        ¡Incluido por Promoción!
+                      </span>
+                    </div>
+                  </div>
+                  <div className="pt-1.5 border-t border-dashed border-gray-200 flex justify-between items-baseline">
+                    <span className="text-gray-700 font-bold">Total a pagar:</span>
+                    <span className="text-xl font-serif-boutique font-bold text-[#5C715E]">
+                      {formatCurrency(total)}
+                    </span>
+                  </div>
                 </div>
 
                 <button
@@ -805,8 +998,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[11px] font-semibold text-[#5C715E] bg-[#5C715E]/10 px-2.5 py-1 rounded-full block">
-                      Envío a Domicilio en Cusco
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full block">
+                      Delivery en Cusco Incluido (S/. 0.00)
                     </span>
                   </div>
                 </div>
