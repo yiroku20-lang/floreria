@@ -46,6 +46,19 @@
         "data": { "type": "object", "description": "Configuration object payload" },
         "updatedAt": { "type": "string", "description": "Last update ISO timestamp" }
       }
+    },
+    "movements": {
+      "description": "Inventory movement audit log (entries, exits, adjustments, sales)",
+      "fields": {
+        "id": { "type": "string", "description": "Unique movement ID" },
+        "productId": { "type": "string", "description": "Referenced floral product ID" },
+        "productName": { "type": "string", "description": "Product display name at time of movement" },
+        "type": { "type": "string", "description": "Movement direction: entrada or salida" },
+        "quantity": { "type": "number", "description": "Quantity moved" },
+        "reason": { "type": "string", "description": "Operational reason (e.g. Venta web, recepción lote)" },
+        "staffName": { "type": "string", "description": "Staff member or system logger" },
+        "date": { "type": "string", "description": "ISO timestamp of movement" }
+      }
     }
   }
 }

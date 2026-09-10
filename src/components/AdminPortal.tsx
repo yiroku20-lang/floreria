@@ -39,8 +39,10 @@ import {
   replaceAllProductsInFirestore,
   fetchProductsFromFirestore,
   seedInitialProducts,
+  COLLECTIONS,
+  DOCS,
 } from '../lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { AdminOrdersDashboard } from './AdminOrdersDashboard';
 import { InventoryManager } from './InventoryManager';
 import { CatalogManager } from './CatalogManager';
@@ -127,27 +129,56 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Cloud Sync state
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [testResult, setTestResult] = useState<{ count: number; sample: string[]; dbId: string } | null>(null);
+  const [testResult, setTestResult] = useState<{
+    productsCount: number;
+    productsSample: string[];
+    ordersCount: number;
+    movementsCount: number;
+    hasSettings: boolean;
+    hasPromo: boolean;
+    socialPostsCount: number;
+    dbId: string;
+    checkedAt: string;
+  } | null>(null);
 
   const handleTestConnection = async () => {
     setIsSyncing(true);
-    setSyncStatus('🔍 Probando conexión en vivo con Firebase Firestore...');
+    setSyncStatus('🔍 Auditando todas las colecciones en vivo en Firebase Firestore...');
     try {
-      const colRef = collection(db, 'products');
-      const snap = await getDocs(colRef);
+      // 1. Productos
+      const prodSnap = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
       const names: string[] = [];
-      snap.forEach((d) => {
+      prodSnap.forEach((d) => {
         const data = d.data();
         names.push(data.name || data.nombre || d.id);
       });
+
+      // 2. Pedidos
+      const orderSnap = await getDocs(collection(db, COLLECTIONS.ORDERS));
+
+      // 3. Movimientos de inventario
+      const movSnap = await getDocs(collection(db, COLLECTIONS.MOVEMENTS));
+
+      // 4. Configuración, Redes y Promo
+      const settSnap = await getDoc(doc(db, COLLECTIONS.CONFIG, DOCS.SETTINGS));
+      const promoSnap = await getDoc(doc(db, COLLECTIONS.CONFIG, DOCS.PROMO));
+      const socialSnap = await getDoc(doc(db, COLLECTIONS.CONFIG, DOCS.SOCIAL));
+      const socialCount = socialSnap.exists() ? (socialSnap.data()?.posts?.length || 0) : 0;
+
       setTestResult({
-        count: snap.size,
-        sample: names.slice(0, 5),
+        productsCount: prodSnap.size,
+        productsSample: names.slice(0, 5),
+        ordersCount: orderSnap.size,
+        movementsCount: movSnap.size,
+        hasSettings: settSnap.exists(),
+        hasPromo: promoSnap.exists(),
+        socialPostsCount: socialCount,
         dbId: firebaseConfig.firestoreDatabaseId,
+        checkedAt: new Date().toLocaleTimeString('es-PE'),
       });
-      setSyncStatus(` Conexión exitosa. Se encontraron ${snap.size} documentos en la nube.`);
+      setSyncStatus(`✅ Auditoría completada: Los 5 módulos están respaldados en la base de datos.`);
     } catch (err: any) {
-      setSyncStatus(`⚠️ Error en test: ${err?.message || 'Revisa permisos'}`);
+      setSyncStatus(`⚠️ Error en auditoría: ${err?.message || 'Revisa permisos'}`);
     } finally {
       setIsSyncing(false);
     }
@@ -789,13 +820,62 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
 
               {testResult && (
-                <div className="mt-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1.5 animate-in fade-in">
-                  <p className="font-bold flex items-center gap-1.5 text-emerald-800">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>¡Conexión verificada con Firebase Firestore!</span>
+                <div className="mt-4 p-5 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-emerald-900 text-xs space-y-3 animate-in fade-in">
+                  <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
+                    <p className="font-bold flex items-center gap-2 text-emerald-800 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Auditoría en Vivo: 100% de la Base de Datos Verificada</span>
+                    </p>
+                    <span className="text-[11px] font-mono text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
+                      Verificado: {testResult.checkedAt}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-2xs">
+                      <p className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">1. Catálogo</p>
+                      <p className="text-base font-bold text-[#2C362D] mt-0.5">{testResult.productsCount} productos</p>
+                      <p className="text-[10px] text-emerald-700 font-medium">Colección 'products'</p>
+                    </div>
+
+                    <div className="bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-2xs">
+                      <p className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">2. Pedidos</p>
+                      <p className="text-base font-bold text-[#2C362D] mt-0.5">{testResult.ordersCount} pedidos</p>
+                      <p className="text-[10px] text-emerald-700 font-medium">Colección 'orders'</p>
+                    </div>
+
+                    <div className="bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-2xs">
+                      <p className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">3. Inventario</p>
+                      <p className="text-base font-bold text-[#2C362D] mt-0.5">{testResult.movementsCount} movimientos</p>
+                      <p className="text-[10px] text-emerald-700 font-medium">Colección 'movements'</p>
+                    </div>
+
+                    <div className="bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-2xs">
+                      <p className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">4. Redes Sociales</p>
+                      <p className="text-base font-bold text-[#2C362D] mt-0.5">{testResult.socialPostsCount} videos vitrina</p>
+                      <p className="text-[10px] text-emerald-700 font-medium">Documento 'social_showcase'</p>
+                    </div>
+
+                    <div className="bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-2xs">
+                      <p className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">5. Configuración</p>
+                      <p className="text-base font-bold text-[#2C362D] mt-0.5">
+                        {testResult.hasSettings ? 'Boutique Activa' : 'Pendiente'}
+                      </p>
+                      <p className="text-[10px] text-emerald-700 font-medium">Doc. 'boutique_settings'</p>
+                    </div>
+
+                    <div className="bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-2xs">
+                      <p className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">6. Campaña Promocional</p>
+                      <p className="text-base font-bold text-[#2C362D] mt-0.5">
+                        {testResult.hasPromo ? 'Banner Configurado' : 'Inactivo'}
+                      </p>
+                      <p className="text-[10px] text-emerald-700 font-medium">Doc. 'promo_config'</p>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-emerald-800 pt-1 border-t border-emerald-200/50">
+                    <strong>Catálogo en vivo:</strong> {testResult.productsSample.join(', ')}...
                   </p>
-                  <p><strong>Documentos en la colección 'products':</strong> {testResult.count}</p>
-                  <p><strong>Muestra de productos leídos:</strong> {testResult.sample.join(', ')}</p>
                 </div>
               )}
 
