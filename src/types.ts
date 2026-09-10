@@ -35,6 +35,7 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  customFraming?: any;
 }
 
 export interface DedicationCard {

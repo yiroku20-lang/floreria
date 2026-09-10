@@ -151,9 +151,14 @@ export const RosanferLogo: React.FC<RosanferLogoProps> = ({
             Rosanfer
           </span>
           <span
-            className={`font-serif-boutique tracking-[0.28em] uppercase ${currentSize.sub} ${
-              light ? 'text-[#FBF9F6]/80' : 'text-[#5C715E]'
+            className={`font-serif-boutique tracking-[0.2em] font-medium ${currentSize.sub} ${
+              light ? 'text-[#FBF9F6]/90' : 'text-[#7C4B3F]'
             }`}
+            style={{
+              background: light ? 'none' : 'linear-gradient(135deg, #7C4B3F 0%, #A26858 50%, #B87C6B 100%)',
+              WebkitBackgroundClip: light ? 'none' : 'text',
+              WebkitTextFillColor: light ? 'currentColor' : 'transparent',
+            }}
           >
             Florería
           </span>
@@ -168,7 +173,7 @@ export const RosanferLogo: React.FC<RosanferLogoProps> = ({
       {Emblem}
       <div className="mt-1 flex flex-col items-center">
         <span
-          className={`font-serif-boutique font-bold tracking-wider leading-none ${currentSize.text} ${
+          className={`font-serif-boutique font-bold tracking-wide leading-none ${currentSize.text} ${
             light ? 'text-[#FBF9F6]' : 'text-[#2C362D]'
           }`}
           style={{
@@ -180,9 +185,14 @@ export const RosanferLogo: React.FC<RosanferLogoProps> = ({
           Rosanfer
         </span>
         <span
-          className={`font-serif-boutique tracking-[0.35em] uppercase font-medium ${currentSize.sub} ${
-            light ? 'text-[#FBF9F6]/80' : 'text-[#5C715E]'
+          className={`font-serif-boutique tracking-[0.25em] font-medium ${currentSize.sub} ${
+            light ? 'text-[#FBF9F6]/90' : 'text-[#7C4B3F]'
           }`}
+          style={{
+            background: light ? 'none' : 'linear-gradient(135deg, #7C4B3F 0%, #A26858 50%, #B87C6B 100%)',
+            WebkitBackgroundClip: light ? 'none' : 'text',
+            WebkitTextFillColor: light ? 'currentColor' : 'transparent',
+          }}
         >
           Florería
         </span>

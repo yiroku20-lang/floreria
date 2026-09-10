@@ -78,7 +78,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [deliveryDate, setDeliveryDate] = useState(`Hoy (${todayStr})`);
   const [deliveryTimeSlot, setDeliveryTimeSlot] = useState('Tarde (14:00 - 19:00)');
-  const [paymentMethod, setPaymentMethod] = useState('Yape / Plin / Transferencia');
+  const [paymentMethod, setPaymentMethod] = useState('Yape o Plin');
   const [notes, setNotes] = useState('');
 
   // Dedication Card
@@ -91,13 +91,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
   const [successWhatsappUrl, setSuccessWhatsappUrl] = useState('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [showBankAccounts, setShowBankAccounts] = useState(false);
 
   // Bank & Wallet numbers from settings
-  const yapeNum = settings?.yapeNumber || '989 415 220';
+  const yapeNum = settings?.yapeNumber || '961 203 577';
   const yapeHolder = settings?.yapeHolder || 'Rosanfer Florería / Andrea V.';
-  const bcpAcc = settings?.bcpAccount || '215-98765432-0-12';
-  const interbankAcc = settings?.interbankAccount || '003-892-0134567890-44';
 
   const handleCopyText = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -144,22 +141,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       id: `ord-${Date.now()}`,
       orderNumber,
       createdAt: new Date().toISOString(),
-      customerName,
-      customerPhone,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
       deliveryType,
-      address: deliveryType === 'delivery' ? address : undefined,
-      district: deliveryType === 'delivery' ? district : undefined,
-      reference: deliveryType === 'delivery' ? reference : undefined,
-      deliveryDate,
-      deliveryTimeSlot,
+      address: deliveryType === 'delivery' ? (address || '') : '',
+      district: deliveryType === 'delivery' ? (district || '') : '',
+      reference: deliveryType === 'delivery' ? (reference || '') : '',
+      deliveryDate: deliveryDate || '',
+      deliveryTimeSlot: deliveryTimeSlot || '',
       dedicationCard: cardEnabled
         ? {
             enabled: true,
-            to: cardTo,
-            from: cardFrom,
-            message: cardMessage,
+            to: cardTo || '',
+            from: cardFrom || '',
+            message: cardMessage || '',
           }
-        : undefined,
+        : {
+            enabled: false,
+            to: '',
+            from: '',
+            message: '',
+          },
       items: [...items],
       subtotal,
       deliveryFee,
@@ -168,7 +170,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         ? 'Nuevo'
         : 'En espera de pago',
       paymentMethod,
-      notes,
+      notes: notes || '',
     };
 
     // Save order in state/intranet
@@ -217,9 +219,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       messageText += `📝 *Observaciones:* ${notes}\n`;
     }
     messageText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    messageText += `💰 *TOTAL A PAGAR:* S/. ${total.toFixed(2)}\n`;
-    messageText += `💳 *MÉTODO DE PAGO:* ${paymentMethod}\n`;
-    messageText += `📎 *NOTA:* He realizado/estoy enviando el comprobante de pago por este chat para confirmar mi pedido.\n`;
+    messageText += `💰 *TOTAL A PAGAR:* ${formatCurrency(total)}\n`;
+    messageText += `💳 *MÉTODO DE PAGO:* Yape o Plin al número: ${yapeNum} (${yapeHolder})\n`;
+    messageText += `📎 *COMPROBANTE:* Adjunto mi captura de Yape/Plin por este chat para procesar mi orden.\n`;
+    messageText += `📞 *Llamadas y Consultas:* 906 800 626\n`;
     messageText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     messageText += `_Generado desde la tienda web rosanferfloreria.com_`;
 
@@ -413,49 +416,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label className="block text-xs font-bold text-[#5C715E] uppercase tracking-wider mb-2">
                     Tipo de Entrega
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {/* Envío a Domicilio (Activo) */}
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryType('delivery')}
-                      className={`p-3 rounded-2xl border text-left flex flex-col gap-1 transition-all ${
-                        deliveryType === 'delivery'
-                          ? 'border-[#5C715E] bg-[#5C715E]/10 text-[#2C362D] ring-2 ring-[#5C715E]/30'
-                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 font-bold text-xs">
-                          <Truck className="w-4 h-4 text-[#5C715E]" />
-                          <span>Envío a Domicilio</span>
-                        </div>
-                        <span className="text-[10px] font-bold bg-[#5C715E] text-white px-2 py-0.5 rounded-full">
-                          Disponible
+                  <div className="p-3.5 rounded-2xl border border-[#5C715E] bg-[#5C715E]/10 text-[#2C362D] flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#5C715E] text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Truck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs block text-[#2C362D]">Envío a Domicilio en todo Cusco</span>
+                        <span className="text-[11px] text-[#2C362D]/70 block">
+                          Tarifa estándar {formatCurrency(defaultDeliveryFee)} (Entrega puntual a la puerta)
                         </span>
                       </div>
-                      <span className="text-[11px] text-gray-600">
-                        {formatCurrency(defaultDeliveryFee)} en todo Cusco y alrededores
-                      </span>
-                    </button>
-
-                    {/* Recojo en Tienda (Próximamente) */}
-                    <div
-                      className="p-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50/80 text-left flex flex-col justify-between gap-1 opacity-80 cursor-not-allowed select-none"
-                      title="Por ahora atendemos 100% por delivery. Próximamente abriremos local físico para recojo."
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-semibold text-xs text-gray-400">
-                          <Store className="w-4 h-4 text-gray-400" />
-                          <span>Recojo en Tienda</span>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
-                          Próximamente
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-500 leading-tight">
-                        Actualmente solo atendemos por delivery. ¡Pronto local físico!
-                      </span>
                     </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#5C715E] text-white px-2.5 py-1 rounded-full shrink-0">
+                      100% Delivery
+                    </span>
                   </div>
                 </div>
 
@@ -709,23 +684,52 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   )}
                 </div>
 
-                {/* Payment preference */}
-                <div className="bg-white p-4 rounded-2xl border border-[#5C715E]/15">
-                  <label className="block text-xs font-bold text-[#5C715E] uppercase tracking-wider mb-2">
-                    Preferencia de Pago
-                  </label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-1 focus:ring-[#5C715E]"
-                  >
-                    <option value="Yape / Plin">Yape o Plin</option>
-                    <option value="Transferencia BCP / Interbank / BBVA">Transferencia Bancaria (BCP, Interbank, BBVA)</option>
-                    <option value="Efectivo contraentrega">Efectivo contraentrega (sujeto a cobertura)</option>
-                    <option value="Tarjeta de crédito/débito vía link">Link de pago con tarjeta</option>
-                  </select>
-                  <p className="text-[11px] text-gray-400 mt-1.5">
-                    * Al enviar por WhatsApp, el personal de Rosanfer te brindará el QR o número de cuenta exacto.
+                {/* Único Método de Pago: Yape o Plin al 961 203 577 */}
+                <div className="bg-gradient-to-br from-emerald-50/90 to-[#FBF9F6] p-4 rounded-2xl border-2 border-emerald-500/25 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                      <Smartphone className="w-4 h-4 text-emerald-700" />
+                      <span>Método de Pago: Yape o Plin</span>
+                    </label>
+                    <span className="text-[10px] font-extrabold uppercase bg-emerald-700 text-white px-2.5 py-0.5 rounded-full shadow-2xs tracking-wider">
+                      Único medio
+                    </span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-emerald-200 flex items-center justify-between shadow-2xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-emerald-800/80 block">
+                        Número de Pago (Yape / Plin):
+                      </span>
+                      <span className="font-mono text-base font-extrabold text-[#2C362D] tracking-wider">
+                        {yapeNum}
+                      </span>
+                      <span className="block text-[11px] text-gray-500 mt-0.5">
+                        Titular: <strong className="text-gray-700">{yapeHolder}</strong>
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyText(yapeNum, 'yape-checkout')}
+                      className="text-[11px] font-semibold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1 transition-colors cursor-pointer"
+                      title="Copiar número de Yape/Plin"
+                    >
+                      {copiedKey === 'yape-checkout' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>¡Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Copiar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="text-[11px] text-emerald-900/80 leading-relaxed">
+                    * Tu pedido se valida automáticamente tras enviar la captura de tu Yape o Plin al WhatsApp de atención al cliente (<strong>906 800 626</strong>).
                   </p>
                 </div>
               </div>
@@ -785,8 +789,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       Datos para tu Pago Directo
                     </span>
                   </div>
-                  <span className="text-[11px] font-semibold text-[#D49A89] bg-[#D49A89]/10 px-2.5 py-0.5 rounded-full border border-[#D49A89]/20">
-                    Yape / Plin / Bancos
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Único Medio: Yape o Plin
                   </span>
                 </div>
 
@@ -797,28 +801,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       Total a pagar
                     </span>
                     <span className="text-2xl font-bold font-serif-boutique text-[#2C362D]">
-                      S/. {placedOrder.total.toFixed(2)}
+                      {formatCurrency(placedOrder?.total)}
                     </span>
                   </div>
                   <div className="text-right">
                     <span className="text-[11px] font-semibold text-[#5C715E] bg-[#5C715E]/10 px-2.5 py-1 rounded-full block">
-                      {placedOrder.deliveryType === 'delivery' ? 'Envío a domicilio' : 'Recojo en tienda'}
+                      Envío a Domicilio en Cusco
                     </span>
                   </div>
                 </div>
 
                 {/* Yape / Plin Card */}
-                <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 mb-3 space-y-1.5">
+                <div className="p-4 rounded-2xl bg-emerald-50/80 border-2 border-emerald-300 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Smartphone className="w-4 h-4 text-emerald-700" />
-                      <span className="text-xs font-bold text-emerald-900">Yape / Plin:</span>
+                      <span className="text-xs font-bold text-emerald-950 uppercase tracking-wide">Yape o Plin:</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleCopyText(yapeNum, 'yape')}
                       className="text-[11px] font-semibold text-emerald-800 hover:text-emerald-950 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1.5 shadow-2xs hover:bg-emerald-50 active:scale-95 transition-all cursor-pointer"
-                      title="Copiar número de Yape"
+                      title="Copiar número de Yape/Plin"
                     >
                       {copiedKey === 'yape' ? (
                         <>
@@ -835,111 +839,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
 
                   <div className="pt-0.5">
-                    <span className="text-base font-bold text-[#2C362D] tracking-wider font-mono">
+                    <span className="text-xl font-bold text-[#2C362D] tracking-wider font-mono">
                       {yapeNum}
                     </span>
                   </div>
-                  <p className="text-[11px] text-emerald-900/80 font-medium">
-                    Titular: <span className="font-semibold text-emerald-950">{yapeHolder}</span>
+                  <p className="text-xs text-emerald-950 font-medium">
+                    Titular: <span className="font-bold text-emerald-950">{yapeHolder}</span>
                   </p>
                 </div>
-
-                {/* Cuentas bancarias */}
-                {(bcpAcc || interbankAcc) && (
-                  <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
-                    <button
-                      type="button"
-                      onClick={() => setShowBankAccounts(!showBankAccounts)}
-                      className="w-full px-3.5 py-2.5 text-xs font-bold text-[#2C362D] flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-1.5 text-gray-700">
-                        <Building2 className="w-3.5 h-3.5 text-[#5C715E]" />
-                        <span>Cuentas Bancarias (BCP / Interbank)</span>
-                      </span>
-                      <div className="flex items-center gap-1 text-gray-400">
-                        <span className="text-[11px] font-normal">
-                          {showBankAccounts ? 'Ocultar' : 'Ver cuentas'}
-                        </span>
-                        {showBankAccounts ? (
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        )}
-                      </div>
-                    </button>
-
-                    {showBankAccounts && (
-                      <div className="p-3 bg-[#FBF9F6] border-t border-gray-100 space-y-2.5">
-                        {bcpAcc && (
-                          <div className="p-2.5 bg-white rounded-xl border border-gray-200 text-xs">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-[#2C362D] flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
-                                BCP Soles:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopyText(bcpAcc, 'bcp')}
-                                className="text-[10px] font-semibold text-gray-700 hover:text-black bg-gray-50 px-2 py-0.5 rounded border border-gray-200 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
-                              >
-                                {copiedKey === 'bcp' ? (
-                                  <>
-                                    <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                    <span>Copiado</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-2.5 h-2.5 text-gray-500" />
-                                    <span>Copiar número de cuenta</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                            <p className="font-mono text-xs text-gray-800 font-semibold select-all">{bcpAcc}</p>
-                            <p className="text-[10px] text-gray-500 mt-0.5">Titular: {yapeHolder}</p>
-                          </div>
-                        )}
-
-                        {interbankAcc && (
-                          <div className="p-2.5 bg-white rounded-xl border border-gray-200 text-xs">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-[#2C362D] flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
-                                Interbank Soles:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopyText(interbankAcc, 'interbank')}
-                                className="text-[10px] font-semibold text-gray-700 hover:text-black bg-gray-50 px-2 py-0.5 rounded border border-gray-200 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
-                              >
-                                {copiedKey === 'interbank' ? (
-                                  <>
-                                    <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                    <span>Copiado</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-2.5 h-2.5 text-gray-500" />
-                                    <span>Copiar número de cuenta</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                            <p className="font-mono text-xs text-gray-800 font-semibold select-all">{interbankAcc}</p>
-                            <p className="text-[10px] text-gray-500 mt-0.5">Titular: {yapeHolder}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Clear Instruction Banner */}
               <div className="w-full mt-3.5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-900 flex items-start gap-2.5 shadow-2xs">
                 <span className="text-base shrink-0 select-none">⚠️</span>
                 <p className="leading-relaxed">
-                  <strong className="font-bold text-amber-950">Importante:</strong> Los arreglos florales se preparan únicamente con el pago verificado. Por favor realiza el abono y adjunta tu captura de pantalla en el chat de WhatsApp que se abrirá a continuación.
+                  <strong className="font-bold text-amber-950">Importante:</strong> Los arreglos florales se elaboran y entregan únicamente con el pago verificado. Por favor realiza tu abono mediante Yape o Plin al <strong>{yapeNum}</strong> y adjunta tu comprobante en el WhatsApp de atención (<strong>906 800 626</strong>).
                 </p>
               </div>
 

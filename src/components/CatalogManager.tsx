@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Edit2,
@@ -92,6 +92,18 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
   const [promoImageError, setPromoImageError] = useState(false);
   const [isPromoFramingOpen, setIsPromoFramingOpen] = useState(false);
   const [originalPromoUrl, setOriginalPromoUrl] = useState<string | undefined>(undefined);
+  const [isSavingPromo, setIsSavingPromo] = useState(false);
+
+  // Sincronizar formulario automáticamente cuando promoConfig se carga o actualiza desde Firestore
+  useEffect(() => {
+    setPromoTitle(promoConfig.title || '');
+    setPromoSubtitle(promoConfig.subtitle || '');
+    setPromoBadge(promoConfig.badge || '');
+    setPromoDriveUrl(promoConfig.driveImageUrl || '');
+    setPromoCtaText(promoConfig.ctaText || 'Ver Arreglos Florales');
+    setPromoEnabled(promoConfig.isEnabled ?? true);
+    setPromoCategory(promoConfig.categoryRedirect || 'Todos');
+  }, [promoConfig]);
 
   // Zoom Lightbox
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
@@ -225,8 +237,9 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
     setTimeout(() => setProductFeedback(''), 4000);
   };
 
-  const handleSavePromo = (e: React.FormEvent) => {
+  const handleSavePromo = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSavingPromo(true);
     const updatedPromo: PromoConfig = {
       isEnabled: promoEnabled,
       title: promoTitle.trim(),
@@ -236,9 +249,15 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
       ctaText: promoCtaText.trim() || 'Ver Arreglos Florales',
       categoryRedirect: promoCategory,
     };
-    onUpdatePromoConfig(updatedPromo);
-    setPromoFeedback('¡Configuración del popup de bienvenida guardada correctamente!');
-    setTimeout(() => setPromoFeedback(''), 4000);
+    try {
+      await onUpdatePromoConfig(updatedPromo);
+      setPromoFeedback('¡Configuración del popup guardada y sincronizada con Firestore!');
+    } catch {
+      setPromoFeedback('¡Configuración guardada en memoria local!');
+    } finally {
+      setIsSavingPromo(false);
+      setTimeout(() => setPromoFeedback(''), 4500);
+    }
   };
 
   // Filtered list of products for the table
@@ -1213,10 +1232,11 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({
                   <button
                     type="submit"
                     id="btn-save-promo-config"
-                    className="py-3 px-8 rounded-full bg-[#5C715E] hover:bg-[#4a5c4c] text-white font-semibold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                    disabled={isSavingPromo}
+                    className="py-3 px-8 rounded-full bg-[#5C715E] hover:bg-[#4a5c4c] disabled:opacity-60 text-white font-semibold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
                   >
-                    <Save className="w-4 h-4" />
-                    <span>Guardar Configuración del Popup</span>
+                    <Save className={`w-4 h-4 ${isSavingPromo ? 'animate-spin' : ''}`} />
+                    <span>{isSavingPromo ? 'Guardando en Firestore...' : 'Guardar Configuración del Popup'}</span>
                   </button>
                 </div>
 

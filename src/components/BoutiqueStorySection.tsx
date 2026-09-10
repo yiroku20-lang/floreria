@@ -45,15 +45,11 @@ export const BoutiqueStorySection: React.FC<BoutiqueStorySectionProps> = ({
                 Modalidad de Atención en Cusco
               </span>
               <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
-                100% Delivery Activo
-              </span>
-              <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
-                <Store className="w-3 h-3" />
-                <span>Próximamente Local Físico</span>
+                100% Envío a Domicilio en Cusco
               </span>
             </div>
             <p className="text-xs text-[#2C362D]/80 leading-relaxed font-light">
-              Por ahora no contamos con local presencial para recojo. Llevamos cada pedido con transporte floral especializado a casas, oficinas y restaurantes en todo Cusco. ¡Muy pronto abriremos las puertas de nuestra primera boutique física!
+              Nuestra atención es exclusiva mediante envíos a domicilio. Llevamos cada diseño floral con transporte especializado y máxima puntualidad directamente a casas, oficinas, centros de eventos y restaurantes en todo Cusco.
             </p>
           </div>
         </div>

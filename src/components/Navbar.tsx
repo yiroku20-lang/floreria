@@ -56,11 +56,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Top minimal ribbon - airy, delicate and calm */}
       <div className="bg-[#5C715E] text-[#FBF9F6] text-[11px] py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2">
         <Sparkles className="w-3 h-3 text-[#D49A89]" />
-        <span>Boutique Floral en Cusco • Envíos a Domicilio & Recojo en Taller</span>
+        <span>Boutique Floral en Cusco • Atención 100% con Envío a Domicilio</span>
         <span className="hidden sm:inline text-[#D49A89]/90">
-          • WhatsApp {whatsappNumber.length === 11 && whatsappNumber.startsWith('51')
+          • Llamadas & WhatsApp {whatsappNumber.length === 11 && whatsappNumber.startsWith('51')
             ? `${whatsappNumber.slice(2, 5)} ${whatsappNumber.slice(5, 8)} ${whatsappNumber.slice(8)}`
-            : (whatsappNumber || '989 415 220')}
+            : (whatsappNumber || '906 800 626')}
         </span>
       </div>
 

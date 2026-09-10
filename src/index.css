@@ -29,6 +29,7 @@ body {
 /* Custom scrollbar matching the boutique aesthetic */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: #FBF9F6;
@@ -39,6 +40,19 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #B87C6B;
+}
+
+/* Scrollbar utility classes */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #D49A89 #FBF9F6;
 }
 
 /* Subtle floral glow */
@@ -67,4 +81,28 @@ div[style*="position: fixed"][style*="bottom: 0"][style*="right: 0"] a[href*="ne
   width: 0 !important;
   height: 0 !important;
   z-index: -9999 !important;
+}
+
+/* Estilos de impresión para comanda / ticket de pedidos en taller */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-order-ticket,
+  #printable-order-ticket * {
+    visibility: visible;
+  }
+  #printable-order-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
 }

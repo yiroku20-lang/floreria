@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MapPin, Clock, Heart, ShieldCheck } from 'lucide-react';
+import { Phone, MapPin, Clock, Heart, ShieldCheck, Smartphone } from 'lucide-react';
 import { RosanferLogo } from './RosanferLogo';
 import { BoutiqueSettings } from '../types';
 
@@ -64,17 +64,14 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
           {/* Col 3: Atelier & Delivery Mode */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#D49A89] mb-4">
-              Taller Floral & Envíos
+              Atención & Envíos a Domicilio
             </h4>
             <ul className="space-y-3 text-xs text-[#FBF9F6]/80 font-light">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#D49A89] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-white block">Taller Floral de Autor en Cusco</span>
-                  <span className="text-[#FBF9F6]/75 block">Atención exclusiva por Delivery en toda la ciudad</span>
-                  <span className="inline-block text-[10px] text-amber-300 font-medium bg-amber-900/40 px-2 py-0.5 rounded-md mt-1 border border-amber-500/30">
-                    ✨ Próximamente: Apertura de local físico para recojo
-                  </span>
+                  <span className="font-semibold text-white block">Rosanfer Florería Cusco</span>
+                  <span className="text-[#FBF9F6]/75 block">Atención exclusiva con Envío a Domicilio en toda la ciudad</span>
                 </div>
               </li>
               <li className="flex items-start gap-2.5">
@@ -83,12 +80,28 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin, onSelectC
               </li>
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-[#D49A89] shrink-0 mt-0.5" />
-                <span>
-                  Atención directa WhatsApp:{' '}
-                  {settings.whatsappNumber.length === 11 && settings.whatsappNumber.startsWith('51')
-                    ? `+51 ${settings.whatsappNumber.slice(2, 5)} ${settings.whatsappNumber.slice(5, 8)} ${settings.whatsappNumber.slice(8)}`
-                    : `+${settings.whatsappNumber}`}
-                </span>
+                <div>
+                  <span className="font-semibold text-white block">Contacto & Llamadas / WhatsApp:</span>
+                  <a
+                    href={`https://wa.me/${settings.whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#FBF9F6]/85 hover:text-white transition-colors block"
+                  >
+                    {settings.whatsappNumber.length === 11 && settings.whatsappNumber.startsWith('51')
+                      ? `+51 ${settings.whatsappNumber.slice(2, 5)} ${settings.whatsappNumber.slice(5, 8)} ${settings.whatsappNumber.slice(8)}`
+                      : `+${settings.whatsappNumber || '51906800626'}`}
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <Smartphone className="w-4 h-4 text-[#D49A89] shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold text-white block">Pago Exclusivo (Yape / Plin):</span>
+                  <span className="text-[#FBF9F6]/85 font-mono">
+                    {settings.yapeNumber || '961 203 577'}
+                  </span>
+                </div>
               </li>
             </ul>
           </div>

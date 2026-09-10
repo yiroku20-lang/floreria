@@ -29,7 +29,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleQuickWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const cleanNumber = (whatsappNumber || '51989415220').replace(/\D/g, '');
+    const cleanNumber = (whatsappNumber || '51906800626').replace(/\D/g, '');
     const message = encodeURIComponent(
       `Hola, quisiera pedir el arreglo "${product.name}" (S/.${product.price})`
     );

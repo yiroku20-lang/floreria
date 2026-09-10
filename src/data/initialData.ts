@@ -280,101 +280,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
 ];
 
-export const INITIAL_ORDERS: Order[] = [
-  {
-    id: 'ord-101',
-    orderNumber: 'RF-2401',
-    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-    customerName: 'María Fernanda Gómez',
-    customerPhone: '+51 984 234 567',
-    deliveryType: 'delivery',
-    address: 'Urb. Magisterio 2da Etapa B-4',
-    district: 'Wanchaq - Cusco',
-    reference: 'Frente al parque, casa portón blanco',
-    deliveryDate: 'Hoy',
-    deliveryTimeSlot: 'Tarde (14:00 - 18:30)',
-    dedicationCard: {
-      enabled: true,
-      to: 'Mamá Carmen',
-      from: 'Mafe y Mateo',
-      message: '¡Feliz día mamá! Gracias por llenar nuestros días de tanto amor y bendiciones.',
-    },
-    items: [
-      { product: INITIAL_PRODUCTS[0], quantity: 1 },
-      { product: INITIAL_PRODUCTS[12], quantity: 1 },
-    ],
-    subtotal: 280.0,
-    deliveryFee: 12.0,
-    total: 292.0,
-    status: 'En camino',
-    paymentMethod: 'WhatsApp / Transferencia Yape',
-    notes: 'Entregar con cuidado, flores frescas de exportación',
-  },
-  {
-    id: 'ord-102',
-    orderNumber: 'RF-2402',
-    createdAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-    customerName: 'Carlos Eduardo Mendoza',
-    customerPhone: '+51 984 555 123',
-    deliveryType: 'pickup',
-    deliveryDate: 'Hoy',
-    deliveryTimeSlot: 'Tarde (16:30 hrs)',
-    dedicationCard: {
-      enabled: true,
-      to: 'Valeria',
-      from: 'Carlos',
-      message: 'Por muchos años más juntos caminando de la mano. Feliz aniversario amor.',
-    },
-    items: [
-      { product: INITIAL_PRODUCTS[2], quantity: 1 },
-    ],
-    subtotal: 130.0,
-    deliveryFee: 0.0,
-    total: 130.0,
-    status: 'En preparación',
-    paymentMethod: 'WhatsApp / Plin',
-  },
-  {
-    id: 'ord-103',
-    orderNumber: 'RF-2403',
-    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-    customerName: 'Luciana Valdivia',
-    customerPhone: '+51 984 889 201',
-    deliveryType: 'delivery',
-    address: 'Av. De la Infancia 312',
-    district: 'Wanchaq',
-    deliveryDate: 'Mañana',
-    deliveryTimeSlot: 'Mañana (09:00 - 13:00)',
-    items: [
-      { product: INITIAL_PRODUCTS[4], quantity: 1 },
-    ],
-    subtotal: 125.0,
-    deliveryFee: 12.0,
-    total: 137.0,
-    status: 'En espera de pago',
-    paymentMethod: 'WhatsApp / Transferencia BCP',
-  },
-  {
-    id: 'ord-104',
-    orderNumber: 'RF-2404',
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-    customerName: 'Rodrigo Alarcón',
-    customerPhone: '+51 984 411 909',
-    deliveryType: 'delivery',
-    address: 'Calle Santa Clara 450',
-    district: 'Centro Histórico - Cusco',
-    deliveryDate: 'Ayer',
-    deliveryTimeSlot: 'Tarde',
-    items: [
-      { product: INITIAL_PRODUCTS[6], quantity: 1 },
-    ],
-    subtotal: 145.0,
-    deliveryFee: 12.0,
-    total: 157.0,
-    status: 'Entregado',
-    paymentMethod: 'WhatsApp / Efectivo contraentrega',
-  },
-];
+export const INITIAL_ORDERS: Order[] = [];
 
 export const INITIAL_MOVEMENTS: InventoryMovement[] = [
   {
@@ -430,16 +336,16 @@ export const INITIAL_PROMO: PromoConfig = {
 };
 
 export const INITIAL_SETTINGS: BoutiqueSettings = {
-  whatsappNumber: '51989415220',
+  whatsappNumber: '51906800626',
   storeName: 'Rosanfer Florería',
-  storeAddress: 'Taller Floral de Autor (Atención 100% Delivery • Próximamente local físico para recojo)',
+  storeAddress: 'Atención Exclusiva con Envío a Domicilio en todo Cusco',
   storeCity: 'Cusco, Perú',
   openingHours: 'Lunes a Sábado: 8:00 AM - 8:30 PM | Domingo: 8:30 AM - 3:00 PM',
   defaultDeliveryFee: 12.0,
-  yapeNumber: '989 415 220',
+  yapeNumber: '961 203 577',
   yapeHolder: 'Rosanfer Florería / Andrea V.',
-  bcpAccount: '215-98765432-0-12',
-  interbankAccount: '003-892-0134567890-44',
+  bcpAccount: '',
+  interbankAccount: '',
 };
 
 export const INITIAL_SOCIAL_POSTS: SocialVideoPost[] = [

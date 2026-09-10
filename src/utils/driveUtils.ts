@@ -121,13 +121,16 @@ export function analyzeImageUrl(rawUrl: string): {
   };
 }
 
-export function formatCurrency(amount: number, currency: string = 'S/.'): string {
-  return `${currency} ${amount.toFixed(2)}`;
+export function formatCurrency(amount?: number | null, currency: string = 'S/.'): string {
+  const safeNum = typeof amount === 'number' && !isNaN(amount) ? amount : (Number(amount) || 0);
+  return `${currency} ${safeNum.toFixed(2)}`;
 }
 
-export function formatDate(isoString: string): string {
+export function formatDate(isoString?: string | null): string {
+  if (!isoString) return '-';
   try {
     const date = new Date(isoString);
+    if (isNaN(date.getTime())) return String(isoString);
     return new Intl.DateTimeFormat('es-ES', {
       day: '2-digit',
       month: 'short',
@@ -136,7 +139,7 @@ export function formatDate(isoString: string): string {
       minute: '2-digit',
     }).format(date);
   } catch {
-    return isoString;
+    return String(isoString || '-');
   }
 }
 

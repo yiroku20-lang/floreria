@@ -166,7 +166,7 @@ export const SocialShowcaseSection: React.FC<SocialShowcaseSectionProps> = ({ po
           </div>
 
           <a
-            href="https://wa.me/51989415220?text=%C2%A1Hola%20Rosanfer!%20Vi%20sus%20videos%20en%20TikTok%20y%20quisiera%20hacer%20un%20pedido%20floral%20en%20Cusco."
+            href="https://wa.me/51906800626?text=%C2%A1Hola%20Rosanfer!%20Vi%20sus%20videos%20en%20TikTok%20y%20quisiera%20hacer%20un%20pedido%20floral%20en%20Cusco."
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 rounded-full bg-[#5C715E] hover:bg-[#4a5c4c] text-white text-xs sm:text-sm font-semibold whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-98 flex items-center gap-2 cursor-pointer"
@@ -465,7 +465,7 @@ const TikTokPlayerModal: React.FC<TikTokPlayerModalProps> = ({ post, onClose }) 
           </a>
 
           <a
-            href={`https://wa.me/51989415220?text=${encodeURIComponent(
+            href={`https://wa.me/51906800626?text=${encodeURIComponent(
               `¡Hola Rosanfer! Vi su video "${post.title}" en la web y me gustaría pedir este ramo.`
             )}`}
             target="_blank"

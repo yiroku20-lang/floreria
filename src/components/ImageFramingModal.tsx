@@ -354,14 +354,18 @@ export const ImageFramingModal: React.FC<ImageFramingModalProps> = ({
 
     setIsProcessing(true);
 
-    const safeX = Number(Math.min(50, Math.max(-50, (offset.x / (FRAME_SIZE / 2)) * 50)).toFixed(1));
-    const safeY = Number(Math.min(50, Math.max(-50, (offset.y / (FRAME_SIZE / 2)) * 50)).toFixed(1));
+    const offsetX = Number(offset?.x) || 0;
+    const offsetY = Number(offset?.y) || 0;
+    const safeZoom = Number(zoom) || 1;
+
+    const safeX = Number(Math.min(50, Math.max(-50, (offsetX / (FRAME_SIZE / 2)) * 50)).toFixed(1));
+    const safeY = Number(Math.min(50, Math.max(-50, (offsetY / (FRAME_SIZE / 2)) * 50)).toFixed(1));
 
     const framingData: ImageFraming = {
-      zoom: Number(Math.max(1, zoom).toFixed(2)),
+      zoom: Number(Math.max(1, safeZoom).toFixed(2)),
       x: safeX,
       y: safeY,
-      rotation,
+      rotation: rotation || 0,
     };
 
     const isWebUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');

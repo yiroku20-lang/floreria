@@ -12,7 +12,7 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { Product, InventoryMovement } from '../types';
-import { formatDate } from '../utils/driveUtils';
+import { formatDate, formatCurrency } from '../utils/driveUtils';
 
 interface InventoryManagerProps {
   products: Product[];
@@ -307,7 +307,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 <tr key={prod.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4 font-semibold text-[#2C362D]">{prod.name}</td>
                   <td className="py-3 px-4 text-gray-500">{prod.category}</td>
-                  <td className="py-3 px-4 font-medium">S/. {prod.price.toFixed(2)}</td>
+                  <td className="py-3 px-4 font-medium">{formatCurrency(prod.price)}</td>
                   <td className="py-3 px-4 text-center font-bold text-base text-[#2C362D]">
                     {prod.stock}
                   </td>

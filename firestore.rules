@@ -2,36 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Permitir a cualquier visitante leer el catálogo de flores y al admin editar
-    match /products/{productId} {
-      allow read, write: if true;
-    }
-    
-    // Permitir que los clientes envíen sus pedidos y administración los gestione
-    match /orders/{orderId} {
-      allow read, write: if true;
-    }
-    
-    // Configuraciones generales y promociones
-    match /settings/{docId} {
-      allow read, write: if true;
-    }
-
-    match /promo/{docId} {
-      allow read, write: if true;
-    }
-
-    match /config/{configId} {
-      allow read, write: if true;
-    }
-
-    match /inventory/{itemId} {
-      allow read, write: if true;
-    }
-
-    match /movements/{movementId} {
+    match /{document=**} {
       allow read, write: if true;
     }
   }
 }
+

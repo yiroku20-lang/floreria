@@ -19,6 +19,7 @@ import {
   saveProductToFirestore,
   deleteProductFromFirestore,
   saveOrderToFirestore,
+  deleteOrderFromFirestore,
   updateOrderStatusInFirestore,
   saveSettingsToFirestore,
   savePromoToFirestore,
@@ -67,8 +68,9 @@ export default function App() {
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = safeGetStorage<Order[]>('rosanfer_orders', INITIAL_ORDERS);
-    return Array.isArray(saved) ? saved : INITIAL_ORDERS;
+    const saved = safeGetStorage<Order[]>('rosanfer_orders', []);
+    if (!Array.isArray(saved)) return [];
+    return saved.filter((o) => o && o.id && o.orderNumber && (o.customerName || (o.items && o.items.length > 0)));
   });
 
   const [movements, setMovements] = useState<InventoryMovement[]>(() =>
@@ -81,7 +83,10 @@ export default function App() {
 
   const [settings, setSettings] = useState<BoutiqueSettings>(() => {
     const saved = safeGetStorage<BoutiqueSettings>('rosanfer_settings', INITIAL_SETTINGS);
-    return saved ? { ...INITIAL_SETTINGS, ...saved } : INITIAL_SETTINGS;
+    const merged = saved ? { ...INITIAL_SETTINGS, ...saved } : INITIAL_SETTINGS;
+    merged.whatsappNumber = '51906800626';
+    if (merged.yapeNumber === '989 415 220' || merged.yapeNumber === '989415220') merged.yapeNumber = '961 203 577';
+    return merged;
   });
 
   const [socialPosts, setSocialPosts] = useState<SocialVideoPost[]>(() =>
@@ -250,12 +255,14 @@ export default function App() {
     }
 
     // 2. Disminuir stock y registrar movimiento en Firestore para cada producto
-    newOrder.items.forEach(async (item) => {
-      const prod = products.find((p) => p.id === item.product.id);
+    for (const item of newOrder.items) {
+      const prodId = item.product?.id;
+      if (!prodId) continue;
+      const prod = products.find((p) => p.id === prodId);
       if (prod) {
-        const updatedProd = { ...prod, stock: Math.max(0, prod.stock - item.quantity) };
+        const updatedProd = { ...prod, stock: Math.max(0, prod.stock - (item.quantity || 1)) };
         setProducts((prev) =>
-          prev.map((p) => (p.id === item.product.id ? updatedProd : p))
+          prev.map((p) => (p.id === prodId ? updatedProd : p))
         );
         try {
           await saveProductToFirestore(updatedProd);
@@ -265,11 +272,11 @@ export default function App() {
       }
 
       const autoMovement: InventoryMovement = {
-        id: `mov-${Date.now()}-${item.product.id}`,
-        productId: item.product.id,
-        productName: item.product.name,
+        id: `mov-${Date.now()}-${prodId}`,
+        productId: prodId,
+        productName: item.product?.name || 'Arreglo Floral',
         type: 'salida',
-        quantity: item.quantity,
+        quantity: item.quantity || 1,
         reason: `Venta web WhatsApp (Orden #${newOrder.orderNumber})`,
         staffName: 'Sistema Rosanfer',
         date: new Date().toISOString(),
@@ -281,17 +288,44 @@ export default function App() {
       } catch (e) {
         console.warn('Error guardando movimiento en Firestore:', e);
       }
-    });
+    }
   };
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+    const currentOrder = orders.find((o) => o.id === orderId);
+    const updatedOrder = currentOrder ? { ...currentOrder, status: newStatus } : null;
+
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
     try {
-      await updateOrderStatusInFirestore(orderId, newStatus);
+      if (updatedOrder) {
+        await saveOrderToFirestore(updatedOrder);
+      } else {
+        await updateOrderStatusInFirestore(orderId, newStatus);
+      }
     } catch (err) {
       console.warn('Error actualizando estado en Firestore:', err);
+    }
+  };
+
+  const handleEditOrder = async (updatedOrder: Order) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+    );
+    try {
+      await saveOrderToFirestore(updatedOrder);
+    } catch (err) {
+      console.warn('Error guardando pedido editado en Firestore:', err);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    try {
+      await deleteOrderFromFirestore(orderId);
+    } catch (err) {
+      console.warn('Error eliminando pedido en Firestore:', err);
     }
   };
 
@@ -554,6 +588,8 @@ export default function App() {
         }}
         orders={orders}
         onUpdateOrderStatus={handleUpdateOrderStatus}
+        onEditOrder={handleEditOrder}
+        onDeleteOrder={handleDeleteOrder}
         products={products}
         onAddProduct={handleAddProduct}
         onUpdateProduct={handleUpdateProduct}

@@ -55,13 +55,14 @@ export const PromoModal: React.FC<PromoModalProps> = ({
 
   const handleCta = () => {
     handleClose();
-    if (promo.categoryRedirect) {
-      onExploreCategory(promo.categoryRedirect);
+    const targetCat = promo.categoryRedirect && promo.categoryRedirect.trim() ? promo.categoryRedirect : 'Todos';
+    onExploreCategory(targetCat);
+    setTimeout(() => {
       const catalog = document.getElementById('catalogo-section');
       if (catalog) {
-        catalog.scrollIntoView({ behavior: 'smooth' });
+        catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }
+    }, 120);
   };
 
   if (!isOpen) return null;

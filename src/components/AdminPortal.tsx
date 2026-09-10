@@ -56,6 +56,8 @@ interface AdminPortalProps {
   onClose: () => void;
   orders: Order[];
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  onEditOrder?: (order: Order) => void;
+  onDeleteOrder?: (orderId: string) => void;
   products: Product[];
   onAddProduct: (prod: Product) => void;
   onUpdateProduct: (prod: Product) => void;
@@ -85,6 +87,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onClose,
   orders,
   onUpdateOrderStatus,
+  onEditOrder,
+  onDeleteOrder,
   products,
   onAddProduct,
   onUpdateProduct,
@@ -110,14 +114,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'catalog' | 'social' | 'settings'>('orders');
 
   // Settings form state
-  const [waNumber, setWaNumber] = useState(settings.whatsappNumber);
+  const [waNumber, setWaNumber] = useState(settings.whatsappNumber || '51906800626');
   const [storeAddress, setStoreAddress] = useState(settings.storeAddress);
   const [storeHours, setStoreHours] = useState(settings.openingHours);
   const [deliveryFee, setDeliveryFee] = useState(settings.defaultDeliveryFee);
-  const [yapeNumber, setYapeNumber] = useState(settings.yapeNumber || '989 415 220');
+  const [yapeNumber, setYapeNumber] = useState(settings.yapeNumber || '961 203 577');
   const [yapeHolder, setYapeHolder] = useState(settings.yapeHolder || 'Rosanfer Florería / Andrea V.');
-  const [bcpAccount, setBcpAccount] = useState(settings.bcpAccount || '215-98765432-0-12');
-  const [interbankAccount, setInterbankAccount] = useState(settings.interbankAccount || '003-892-0134567890-44');
+  const [bcpAccount, setBcpAccount] = useState(settings.bcpAccount || '');
+  const [interbankAccount, setInterbankAccount] = useState(settings.interbankAccount || '');
   const [settingsFeedback, setSettingsFeedback] = useState('');
 
   // Password change state
@@ -447,6 +451,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <AdminOrdersDashboard
             orders={orders}
             onUpdateOrderStatus={onUpdateOrderStatus}
+            onEditOrder={onEditOrder}
+            onDeleteOrder={onDeleteOrder}
             whatsappNumber={settings.whatsappNumber}
           />
         )}
@@ -496,18 +502,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <div>
                   <label className="block text-xs font-bold text-[#2C362D] mb-1 flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-[#5C715E]" />
-                    <span>Número de WhatsApp para Recepción de Pedidos *</span>
+                    <span>Número de Contacto en General, Llamadas o WhatsApp *</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Ej: 51987654321 (con código de país sin +)"
+                    placeholder="Ej: 51906800626 (código 51 + 906800626)"
                     value={waNumber}
                     onChange={(e) => setWaNumber(e.target.value)}
                     className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
                   />
                   <p className="text-[11px] text-gray-500 mt-1">
-                    Aquí es donde los clientes enviarán sus pedidos desde el carrito con el formato preconfigurado.
+                    Número oficial para atención de clientes, consultas por WhatsApp y llamadas: <strong>906 800 626</strong>.
                   </p>
                 </div>
 
@@ -564,23 +570,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   <div className="flex items-center gap-2 mb-2">
                     <Wallet className="w-4 h-4 text-[#5C715E]" />
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#2C362D]">
-                      Datos de Cobro Bancario y Billeteras Digitales (Yape / Plin / Transferencias)
+                      Único Método de Pago Oficial: Yape o Plin al 961 203 577
                     </h4>
                   </div>
                   <p className="text-[11px] text-gray-500 mb-4">
-                    Estos datos se mostrarán a tus clientes en el resumen de compra y confirmación para que abonen por Yape, Plin o cuenta bancaria.
+                    Este es el único número habilitado para pagos por Yape o Plin. Los clientes abonarán aquí y enviarán su comprobante al WhatsApp de atención.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-[#2C362D] mb-1 flex items-center gap-1.5">
                         <QrCode className="w-3.5 h-3.5 text-[#5C715E]" />
-                        <span>Número Yape / Plin *</span>
+                        <span>Número Yape / Plin (Único Medio de Pago) *</span>
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="Ej: 989 415 220"
+                        placeholder="Ej: 961 203 577"
                         value={yapeNumber}
                         onChange={(e) => setYapeNumber(e.target.value)}
                         className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-[#FBF9F6] focus:outline-none focus:ring-2 focus:ring-[#5C715E]"
