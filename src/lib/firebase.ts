@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
+  initializeFirestore,
   getFirestore,
   collection,
   doc,
@@ -9,6 +10,7 @@ import {
   onSnapshot,
   writeBatch,
   getDoc,
+  Firestore,
 } from 'firebase/firestore';
 import type {
   Product,
@@ -17,6 +19,7 @@ import type {
   PromoConfig,
   SocialVideoPost,
   InventoryMovement,
+  ProductCategory,
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -25,8 +28,9 @@ import {
   INITIAL_SOCIAL_POSTS,
   INITIAL_MOVEMENTS,
 } from '../data/initialData';
+import { transformDriveUrl, BOUTIQUE_FALLBACK_IMAGE } from '../utils/driveUtils';
 
-// Configuración de Firebase (Sincronizada con el proyecto aprovisionado)
+// Configuración de Firebase
 export const firebaseConfig = {
   projectId: "wired-signifier-q40ks",
   appId: "1:242162152938:web:00fb951d89cd75411bae93",
@@ -40,8 +44,19 @@ export const firebaseConfig = {
 // Inicialización de la aplicación Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Inicialización de Firestore (usando el ID de base de datos aprovisionado)
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Inicialización de Firestore robusta para navegadores y preview iframes
+function getInitializedFirestore(): Firestore {
+  try {
+    return initializeFirestore(app, {
+      experimentalAutoDetectLongPolling: true,
+      experimentalForceLongPolling: false,
+    }, firebaseConfig.firestoreDatabaseId);
+  } catch {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
+}
+
+export const db: Firestore = getInitializedFirestore();
 
 // Nombres de colecciones y documentos
 const COLLECTIONS = {
@@ -57,6 +72,96 @@ const DOCS = {
   SOCIAL: 'social_showcase',
 };
 
+/**
+ * Normaliza cualquier documento de Firestore (en español o inglés) al formato estándar Product
+ */
+export function normalizeProductData(docId: string, raw: any): Product {
+  if (!raw) return { ...INITIAL_PRODUCTS[0], id: docId };
+
+  const name = raw.name || raw.nombre || raw.title || raw.titulo || 'Arreglo Floral';
+  
+  // Precio
+  let price = 0;
+  const rawPrice = raw.price !== undefined ? raw.price : raw.precio;
+  if (typeof rawPrice === 'number') {
+    price = rawPrice;
+  } else if (typeof rawPrice === 'string') {
+    price = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
+  }
+
+  // Precio Original
+  let originalPrice: number | undefined = undefined;
+  const rawOrigPrice = raw.originalPrice !== undefined ? raw.originalPrice : raw.precioOriginal;
+  if (rawOrigPrice !== undefined) {
+    originalPrice = typeof rawOrigPrice === 'number' ? rawOrigPrice : parseFloat(String(rawOrigPrice).replace(/[^0-9.]/g, ''));
+  }
+
+  // Stock
+  let stock = 10;
+  const rawStock = raw.stock !== undefined ? raw.stock : raw.cantidad;
+  if (typeof rawStock === 'number') {
+    stock = rawStock;
+  } else if (typeof rawStock === 'string') {
+    stock = parseInt(rawStock, 10) || 10;
+  }
+
+  // Imagen: Soporta driveImageUrl, imageUrl, imagen, foto, url, image
+  const rawImg =
+    raw.imageUrl ||
+    raw.driveImageUrl ||
+    raw.imagen ||
+    raw.foto ||
+    raw.image ||
+    raw.url ||
+    raw.link ||
+    '';
+  
+  const cleanImg = transformDriveUrl(rawImg) || rawImg || BOUTIQUE_FALLBACK_IMAGE;
+
+  // Categoría
+  let category: ProductCategory = 'Festivos';
+  const rawCat = (raw.category || raw.categoria || '').trim();
+  const validCategories: ProductCategory[] = [
+    'Festivos',
+    'Latidos en Flor',
+    'Graduación',
+    'Set Nupcial "Sí Acepto"',
+    'Amor Eterno',
+    'Primavera Para Ti',
+  ];
+  const matched = validCategories.find(
+    (c) => c.toLowerCase() === rawCat.toLowerCase()
+  );
+  if (matched) {
+    category = matched;
+  } else if (rawCat) {
+    category = rawCat as ProductCategory;
+  }
+
+  return {
+    id: raw.id || docId,
+    name,
+    category,
+    subEdition: raw.subEdition || raw.subEdicion || raw.subtitulo || raw.subtitle || '',
+    description: raw.description || raw.descripcion || raw.detalle || '',
+    price,
+    originalPrice,
+    stock,
+    imageUrl: cleanImg,
+    originalImageUrl: raw.originalImageUrl || rawImg,
+    framing: raw.framing,
+    tags: Array.isArray(raw.tags)
+      ? raw.tags
+      : raw.tag
+      ? [raw.tag]
+      : ['Bestseller'],
+    careTips: Array.isArray(raw.careTips) ? raw.careTips : undefined,
+    stemCount: raw.stemCount || raw.tallos || raw.cantidadTallos || '',
+    featured: raw.featured !== undefined ? Boolean(raw.featured) : true,
+    occasion: raw.occasion || raw.ocasion || '',
+  };
+}
+
 // --- SERVICIOS DE SINCRONIZACIÓN EN TIEMPO REAL ---
 
 /**
@@ -71,20 +176,19 @@ export function subscribeToProducts(
     colRef,
     async (snapshot) => {
       if (snapshot.empty) {
-        // Si la base de datos está vacía, sembramos los productos iniciales
         console.log('🌱 Firestore vacío: sembrando catálogo inicial en la nube...');
         await seedInitialProducts();
         callback(INITIAL_PRODUCTS);
       } else {
-        const products: Product[] = [];
+        const prods: Product[] = [];
         snapshot.forEach((docSnap) => {
-          products.push(docSnap.data() as Product);
+          prods.push(normalizeProductData(docSnap.id, docSnap.data()));
         });
-        callback(products);
+        callback(prods);
       }
     },
     (err) => {
-      console.warn('Firestore Products subscription warning:', err);
+      // Manejo silencioso de errores de red para no interrumpir al usuario
       if (onError) onError(err);
     }
   );
@@ -105,14 +209,12 @@ export function subscribeToOrders(
       snapshot.forEach((docSnap) => {
         orders.push(docSnap.data() as Order);
       });
-      // Ordenar por fecha descendente
       orders.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       callback(orders);
     },
     (err) => {
-      console.warn('Firestore Orders subscription warning:', err);
       if (onError) onError(err);
     }
   );
@@ -132,13 +234,11 @@ export function subscribeToSettings(
       if (snapshot.exists()) {
         callback(snapshot.data() as BoutiqueSettings);
       } else {
-        // Si no existe, creamos la configuración inicial
         await setDoc(docRef, INITIAL_SETTINGS);
         callback(INITIAL_SETTINGS);
       }
     },
     (err) => {
-      console.warn('Firestore Settings subscription warning:', err);
       if (onError) onError(err);
     }
   );
@@ -163,14 +263,13 @@ export function subscribeToPromo(
       }
     },
     (err) => {
-      console.warn('Firestore Promo subscription warning:', err);
       if (onError) onError(err);
     }
   );
 }
 
 /**
- * Escucha cambios en la vitrina de redes sociales (TikTok / Instagram)
+ * Escucha cambios en la vitrina de redes sociales
  */
 export function subscribeToSocialPosts(
   callback: (posts: SocialVideoPost[]) => void,
@@ -189,7 +288,6 @@ export function subscribeToSocialPosts(
       }
     },
     (err) => {
-      console.warn('Firestore Social Posts subscription warning:', err);
       if (onError) onError(err);
     }
   );
@@ -220,7 +318,6 @@ export function subscribeToMovements(
       }
     },
     (err) => {
-      console.warn('Firestore Movements subscription warning:', err);
       if (onError) onError(err);
     }
   );
@@ -332,3 +429,5 @@ export async function seedInitialProducts(): Promise<void> {
     console.error('Error al sembrar productos iniciales en Firestore:', error);
   }
 }
+
+

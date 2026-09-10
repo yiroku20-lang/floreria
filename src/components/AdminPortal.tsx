@@ -20,6 +20,7 @@ import {
   Building2,
   Wallet,
   Share2,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Product,
@@ -31,6 +32,13 @@ import {
   AdminSession,
   SocialVideoPost,
 } from '../types';
+import {
+  db,
+  firebaseConfig,
+  saveAllProductsToFirestore,
+  seedInitialProducts,
+} from '../lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { AdminOrdersDashboard } from './AdminOrdersDashboard';
 import { InventoryManager } from './InventoryManager';
 import { CatalogManager } from './CatalogManager';
@@ -109,6 +117,53 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Cloud Sync state
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [testResult, setTestResult] = useState<{ count: number; sample: string[]; dbId: string } | null>(null);
+
+  const handleTestConnection = async () => {
+    setIsSyncing(true);
+    setSyncStatus('🔍 Probando conexión en vivo con Firebase Firestore...');
+    try {
+      const colRef = collection(db, 'products');
+      const snap = await getDocs(colRef);
+      const names: string[] = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        names.push(data.name || data.nombre || d.id);
+      });
+      setTestResult({
+        count: snap.size,
+        sample: names.slice(0, 5),
+        dbId: firebaseConfig.firestoreDatabaseId,
+      });
+      setSyncStatus(` Conexión exitosa. Se encontraron ${snap.size} documentos en la nube.`);
+    } catch (err: any) {
+      setSyncStatus(`⚠️ Error en test: ${err?.message || 'Revisa permisos'}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncAllToFirebase = async () => {
+    setIsSyncing(true);
+    setSyncStatus('Sincronizando catálogo completo con Firebase...');
+    try {
+      await saveAllProductsToFirestore(products);
+      setSyncStatus(`¡Éxito! ${products.length} productos sincronizados con Firebase.`);
+    } catch (err: any) {
+      setSyncStatus(`Aviso al sincronizar: ${err?.message || 'Revisa tu conexión'}`);
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatus(null), 6000);
+    }
+  };
+
+  const handleReloadFromFirebase = () => {
+    window.location.reload();
+  };
 
   if (!isOpen) return null;
 
@@ -644,6 +699,81 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   </div>
                 )}
               </form>
+            </div>
+
+            {/* Cloud Database & Firebase Sync Center */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#5C715E]/15 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <h3 className="text-xl font-serif-boutique font-bold text-[#2C362D] flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <span>Base de Datos en la Nube (Firebase Firestore)</span>
+                </h3>
+                <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Conexión Activa en Tiempo Real</span>
+                </span>
+              </div>
+
+              <div className="mt-4 p-4 rounded-2xl bg-[#FBF9F6] border border-gray-100 text-xs space-y-2 text-[#2C362D]">
+                <p>
+                  <strong className="font-bold">Proyecto Firebase:</strong> <code className="bg-gray-200/70 px-2 py-0.5 rounded text-[11px] font-mono">wired-signifier-q40ks</code>
+                </p>
+                <p>
+                  <strong className="font-bold">Productos en Memoria:</strong> {products.length} arreglos florales activos.
+                </p>
+                <p className="text-gray-500">
+                  Cualquier producto agregado o editado desde esta Intranet o desde la consola de Firebase se sincroniza automáticamente en vivo con todos tus clientes.
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={isSyncing}
+                  className="py-2.5 px-5 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>🔍 Probar Conexión en Vivo (Leer Nube)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSyncAllToFirebase}
+                  disabled={isSyncing}
+                  className="py-2.5 px-5 rounded-full bg-[#5C715E] hover:bg-[#4a5c4c] text-white font-semibold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSyncing ? 'Sincronizando...' : '⬆️ Subir/Asegurar Todo el Catálogo a Firebase'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleReloadFromFirebase}
+                  className="py-2.5 px-5 rounded-full bg-white hover:bg-gray-100 text-[#2C362D] border border-gray-200 font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Share2 className="w-4 h-4 text-[#5C715E]" />
+                  <span>🔄 Recargar Catálogo desde la Nube</span>
+                </button>
+              </div>
+
+              {testResult && (
+                <div className="mt-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1.5 animate-in fade-in">
+                  <p className="font-bold flex items-center gap-1.5 text-emerald-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>¡Conexión verificada con Firebase Firestore!</span>
+                  </p>
+                  <p><strong>Documentos en la colección 'products':</strong> {testResult.count}</p>
+                  <p><strong>Muestra de productos leídos:</strong> {testResult.sample.join(', ')}</p>
+                </div>
+              )}
+
+              {syncStatus && (
+                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{syncStatus}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
